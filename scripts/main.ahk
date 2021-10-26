@@ -1,6 +1,6 @@
 ;//Supreme Commander Definitive Windowed Borderless Script
 ;//ageekhere, tatsu, IO_Nox other sources on the net
-;//1.07
+;//1.08
 
 ;//Supports 
 ;//dual Monitors of the same resolution
@@ -273,6 +273,7 @@ resize(x, y, gametype,active)
 		WinMove, % "ahk_exe " gametype , , moveX, moveY, %x%, %y% 
 		WinMaximize, % "ahk_exe " gametype
 		WinRestore, % "ahk_exe " gametype
+		WinActivate ;
 }
 
 ;//Hot key to switch from dual screen to single screen or to exit the script
