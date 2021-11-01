@@ -1,6 +1,6 @@
 ;//Supreme Commander Definitive Windowed Borderless Script
 ;//ageekhere, tatsu, IO_Nox other sources on the net
-;//1.08
+;//1.09
 
 ;//Supports 
 ;//dual Monitors of the same resolution
@@ -33,6 +33,7 @@ global width := 0 ;//resolution width (do not change)
 global height := 0 ;//resolution height (do not change)
 global clipMouse = true ;//This will trap the mouse cursor within the game while the game window is active, you can use windows key to deactivate the game window,
 global restoreWindow = false
+global loadingSearchDelayCount = 0
 
 if(lockCursorArg = 0)
 { ;//Disable the mouse clip from user settings
@@ -273,7 +274,12 @@ resize(x, y, gametype,active)
 		WinMove, % "ahk_exe " gametype , , moveX, moveY, %x%, %y% 
 		WinMaximize, % "ahk_exe " gametype
 		WinRestore, % "ahk_exe " gametype
-		WinActivate ;
+	;//A fix to hide the task bar on the second monitor when going into dual screen mode
+	if(dualScreenActive = true)
+	{
+		WinMinimize % "ahk_exe " gametype
+		WinRestore, % "ahk_exe " gametype
+	}
 }
 
 ;//Hot key to switch from dual screen to single screen or to exit the script
@@ -361,6 +367,11 @@ clipProc:
 return
 
 loadingSearch:
+	if(loadingSearchDelayCount < 500)
+	{ ;//A 5 second delay 
+		loadingSearchDelayCount ++
+		return
+	}
 	if (!ProcessExist(procGame)) 
 	{
 		settimer, endGameSearch, OFF
@@ -468,6 +479,7 @@ exitProc:
 return	
 
 ;//exit the script
+loadingSearchDelayCount := 0
 quit()
 { 	
 	ExitApp
