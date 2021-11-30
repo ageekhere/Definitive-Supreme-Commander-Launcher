@@ -264,7 +264,8 @@ if(clipMouse == true)
 if(enableAutoDualScreen = true)
 {
 	SetTimer, loadingSearch, 10
-	if (lowerCaseFirstArg != "client") SetTimer, endGameSearch, 1000 
+	MsgBox, %lowerCaseFirstArg%
+	if (lowerCaseFirstArg != "client") SetTimer, endGameSearch, 1000
 	SetTimer, endGameSearch, OFF
 }
 ;//Function that will Manually switch from dual screen to single screen

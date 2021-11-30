@@ -1,5 +1,5 @@
 """
-Definitive Supreme Commander Launcher 1.02
+Definitive Supreme Commander Launcher 1.03
 
 Created by
 ageekhere
@@ -40,8 +40,8 @@ from tkinter.filedialog import askopenfilename
 import ctypes
 
 launcherName = "Definitive Supreme Commander Launcher"
-version = "1.02" #version of launcher
-scriptVersion = "1.07" #version of script
+version = "1.03" #version of launcher
+scriptVersion = "1.10" #version of script
 userData = ConfigParser() #New ConfigParser to reference an INI file
 my_config = Path("./config/config.ini") #Relative path to INI file
 if my_config.is_file(): #Check if the INI file exists
