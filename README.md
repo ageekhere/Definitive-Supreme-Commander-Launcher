@@ -3,7 +3,7 @@
   <img width="256" src="https://user-images.githubusercontent.com/13173133/138048775-15a2ea52-9612-4b9f-af1a-2043523a55b3.png" alt="DSCL logo"></a></p>
 </p>
 
-What began as a script to improve the optimisation of windowed mode for Forged Alliance escalated into a Launcher which sought to unified the genre. The Python script and the Autohotkey script have all but exhausted their API’s resources in order to construct the library manager. 
+What began as a script to improve the optimisation of windowed mode for Forged Alliance escalated into a Launcher which sought to unify the genre. The Python script and the Autohotkey script have all but exhausted their API’s resources in order to construct the library manager. 
 The interface, now fully operating beyond what was initially designed begins its journey to assimilate the corresponding RTS franchises. This is the Definitive Supreme Commander Launcher. For this project the only acceptable outcome is the complete amalgamation of the Chris Taylor RTS assemblage.
 
 ![Launcher](https://user-images.githubusercontent.com/13173133/138063681-27963ca0-00b7-4aa0-aa85-9cad1f88be1f.png)
