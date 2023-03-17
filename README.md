@@ -40,3 +40,10 @@ Features
 
 Resources
 https://forum.faforever.com/topic/123/guide-fake-fullscreen-and-optimisation
+
+Total Annihilation Unofficial Patch 
+https://github.com/gammata/TA-Unofficial-Patch-Install
+- Fullscreen Windowed Mode
+- Rendering Settings
+- FPS Limiter
+- Fixes, Improvements and more  
