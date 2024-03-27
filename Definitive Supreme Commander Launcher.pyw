@@ -1,53 +1,389 @@
 """
-Definitive Supreme Commander Launcher 1.03
-
-Created by
-ageekhere
-
-Suported games
------------------------------
-Supreme Commander
-Forged Alliance
-Supreme Commander(Steam)
-Forged Alliance(Steam)
-Forged Alliance Forever
-Downlord's FAF Client
-Forged Alliance LOUD
-FAF Map Editor
-Supreme Commander 2
-Supreme Commander 2(Steam)
-Planetary Annihilation
-Total Annihilation
-Total Annihilation Forever
-Total Annihilation Escalation
-Total Annihilation Mayhem
-Total Annihilation ProTA
-Total Annihilation Twilight
-Total Annihilation Zero
-Zero-K
-Beyond All Reason
------------------------------
+Install the following for python
+pip3 install customtkinter
+python -m pip install requests
+pip install pillow
 """
-import tkinter
-from tkinter import *
-import sys, string, os
-from PIL import ImageTk, Image
-from configparser import ConfigParser
-from pathlib import Path
-from functools import partial
-import subprocess as subCall
-from tkinter.filedialog import askopenfilename
+import configparser
+import customtkinter
 import ctypes
+import platform
+import requests
+import subprocess as subCall
+import sys, string, os
+import tkinter
+import tkinter as tk
+import webbrowser
+from tkinter import *
+from configparser import ConfigParser
+from datetime import date
+from functools import partial
+from pathlib import Path
+from PIL import ImageTk, Image
+from tkinter import ttk
+from tkinter.filedialog import askopenfilename
+import subprocess
+def read_wright_config(pOption: str # r = read, w = wright
+    ) -> None:
+    # Read for write to the config file
+    if pOption not in ("r", "w"): # The operation to perform, either "r" for reading or "w" for writing.
+        raise ValueError("Invalid option: must be 'r' or 'w'") # If an invalid option is provided.
+    if pOption == "w": # Check for wright
+        with open(gConfigPath, 'w') as pConfigfile: # Open the file 
+            gUserData.write(pConfigfile) # Wright to the file
+    elif pOption == "r": # Check for read
+        gUserData.read(gConfigPath) #Read the ini file
 
-launcherName = "Definitive Supreme Commander Launcher"
-version = "1.03" #version of launcher
-scriptVersion = "1.10" #version of script
-userData = ConfigParser() #New ConfigParser to reference an INI file
-my_config = Path("./config/config.ini") #Relative path to INI file
-if my_config.is_file(): #Check if the INI file exists
-    userData.read("./config/config.ini") #read the INI file to load data
-else: #set the defaults of the INI file if the file does not exists
-    userData["USERINFO"] = {
+def create_Label(pWindow: customtkinter.CTkToplevel, # The window 
+    pText: str, # Label text
+    pFont: tkinter.font.Font, # Label font 
+    pSide: str = "top", # Side value
+    pJustify: str = "left", # Justify value
+    pAnchor: str = "w" # Anchor value
+    ) -> customtkinter.CTkLabel: # Using customtkinter.CTkLabel
+    pLabel = customtkinter.CTkLabel(pWindow, text=pText, font =pFont,justify=pJustify) # Creates a new label with specified properties.
+    pLabel.pack(side = pSide,anchor=pAnchor,padx=5) # Packs new label with specified properties.
+    return pLabel
+
+def weblink_open(pLink: str, *args: any) -> None:
+    webbrowser.open(pLink) # Opens the specified web link in the default browser 
+
+def theme_update() -> None: 
+    # Set the theme to use for the app
+    if gUserinfo["darkModeEnabled"] == "1": # 0 is light, 1 is dark
+        pTheme = "dark"
+        pColor = "blue"    
+    else:
+        pTheme = "light"
+        pColor = "blue"
+    customtkinter.set_appearance_mode(pTheme) # Set theme appearance mode
+    customtkinter.set_default_color_theme(pColor) # Set color theme
+
+def gameClick(pGameName:str, pGamePath:str, pGameType:str, pExeName):
+    # Load game on image click
+    if pGameType != "steam": # Check for steam game
+        startGame(pGamePath,pGameName) # call startGame to load the game
+    else: # Is a steam game
+        subCall.Popen(["scripts/AutoHotkeyU32.exe", "scripts/main.ahk",pGameName,pGamePath,
+        gUserinfo["lockCursorEnabled"],gUserinfo["autoSetMonitorEnabled"],gUserinfo["autoSetDualScreenEnabled"],pExeName,gUserinfo["minimizeallEnabled"],gUserinfo["dualScreenDefaultEnabled"] ]) # load steam game via steam
+
+def startGame(pPath:str, pName:str) -> None:
+    game_dir = os.path.dirname(pPath)
+    pGameLocation = r'%s' %pPath
+    pGameExe = pGameLocation.split('\\')[-1]
+    pFixedGameLocation = pGameLocation.replace(pGameExe, "", 1)
+    subCall.Popen(["scripts/AutoHotkeyU32.exe", "scripts/main.ahk",pName,pFixedGameLocation,
+    gUserinfo["lockCursorEnabled"],gUserinfo["autoSetMonitorEnabled"],gUserinfo["autoSetDualScreenEnabled"],pGameExe, gUserinfo["minimizeallEnabled"],gUserinfo["dualScreenDefaultEnabled"] ])
+
+def optionmenu_callback(choice) -> None:
+    if choice == "Settings":
+        optionsMenu.set("Menu")
+        def_settings()
+    if choice == "About":
+        optionsMenu.set("Menu")
+        def_about()
+    if choice == "Exit":
+        optionsMenu.set("Menu")
+        gMainWindow.quit()
+
+def update_event() -> None:
+    webbrowser.open("https://github.com/ageekhere/Definitive-Supreme-Commander-Launcher/releases")
+
+def _bound_to_mousewheelHome(event) -> None:
+    gHomeCanvas.bind_all("<MouseWheel>", _on_mousewheelHome)
+
+def _unbound_to_mousewheelHome(event) -> None:
+    gHomeCanvas.unbind_all("<MouseWheel>")
+
+def _on_mousewheelHome(event) -> None:
+    pScrollUnits = 120
+    if gHomeScrollable_frame.winfo_reqheight() > gMainWindowHeight:
+        gHomeCanvas.yview_scroll(int(-1*(event.delta/pScrollUnits)), "units")
+
+# Function, Creates the game buttons for the interface
+def interfaceCreateGameButton(pImagePath, pFcommand, pLabelText, gameEnable, pGameName:str, pGamePath:str, pGameType:str, pExeName:str) -> None:
+    if gUserinfo[gameEnable] == "0": # Check if the game has been enabled
+        return # Skip game if not enabled
+    global gInterfaceRow,gInterfaceCol # Global
+    pImageName = Image.open(pImagePath) # Open a new image at the pImagePath address
+    pImageWidth, pImageHeight = pImageName.size # Read image size
+    pImageHeight = int((pImageHeight*0.55)) # Set image height
+    pHeightPercent = (pImageHeight / float(pImageName.size[1])) # Find height percent
+    pImageWidth = int((float(pImageName.size[0]) * float(pHeightPercent))) # Set width to scale with height
+    pImageName = pImageName.resize((pImageWidth,pImageHeight),Image.Resampling.LANCZOS) # Resize the image   
+    pImageName = ImageTk.PhotoImage(pImageName) # Create a new PhotoImage of pImageName after the resize 
+    pImageLabel = tkinter.Label(image=pImageName) # Create a label with the image
+    pImageLabel.image = pImageName # Set the label image
+    pImageButton = Button(gHomeScrollable_frame, image=pImageName, width=pImageWidth, height=pImageHeight,command=partial(pFcommand,pGameName,pGamePath,pGameType,pExeName),bd=0,highlightthickness=0 ) #Make a image button
+
+    #make a grid with 3 columns
+    if gInterfaceCol > 2:
+        gInterfaceCol = 0
+        gInterfaceRow = gInterfaceRow + 2
+    gInterfaceCol = gInterfaceCol + 1
+    pGameLabel = customtkinter.CTkLabel(gHomeScrollable_frame, text=pLabelText) # Create new label name
+    pGameLabel.configure(font =("Orbitron", 20)) # Set the font of the Label
+    pGameLabel.grid(row=gInterfaceRow,column=gInterfaceCol) # Add lable as grid
+    pImageButton.grid(row=gInterfaceRow+1,column=gInterfaceCol,padx=30, pady=10) # Add button as grid
+    gMainWindowCanvas.config(scrollregion=gMainWindowCanvas.bbox(ALL)) # Configure the scroll region 
+
+#Function, create the main interface
+def createInterface() -> None: 
+    #reset the col and row number
+    global gInterfaceRow
+    global gInterfaceCol
+    gInterfaceRow = 0
+    gInterfaceCol = 0
+    #delete all content form the gHomeScrollable_frame
+    for widget in gHomeScrollable_frame.winfo_children():
+        widget.destroy()
+    # Add images to interface,interfaceCreateGameButton(string image location, function click, string name, string enabled)
+    interfaceCreateGameButton(r"data\absoluteAnnihilation.png",gameClick,"Absolute Annihilation","absoluteAnnEnabled","absoluteAnn", gUserinfo["absoluteAnnPath"],"na","na") # Absolute Annihilation
+    interfaceCreateGameButton(r"data\bar.png",gameClick,"Beyond All Reason","barEnabled","bar", gUserinfo["barPath"],"na","na") # Beyond All Reason
+    interfaceCreateGameButton(r"data\client.png",gameClick,"Downlord's FAF Client","downlordClientEnabled","client", gUserinfo["downlordClientPath"],"na","na") # Downlord's FAF Client
+    interfaceCreateGameButton(r"data\escalation.png",gameClick,"Total Annihilation Escalation","taEscalationEnabled","taEscalation", gUserinfo["taEscalationPath"],"na","na") # Total Annihilation Escalation
+    interfaceCreateGameButton(r"data\imagefaf.png",gameClick,"Forged Alliance Forever","fafEnabled","faf", gUserinfo["fafPath"],"na","na") # Supreme Commander Forged Alliance Forever
+    interfaceCreateGameButton(r"data\loud.png",gameClick,"Forged Alliance LOUD","loudEnabled","loud", gUserinfo["loudPath"],"na","na") # Supreme Commander Forged Alliance LOUD
+    interfaceCreateGameButton(r"data\mapeditor.png",gameClick,"FAF Map Editor","mapeditorEnabled","mapeditor", gUserinfo["mapedirorscPath"],"na","na") # FAF Map Editor
+    interfaceCreateGameButton(r"data\prota.png",gameClick,"Total Annihilation ProTA","taProTAEnabled","taPro", gUserinfo["taProTAPath"],"na","na") # Total Annihilation ProTA
+    interfaceCreateGameButton(r"data\sc.png",gameClick,"Supreme Commander","scEnabled","sc", gUserinfo["scPath"],"na","na") # Supreme Commander
+    interfaceCreateGameButton(r"data\sc2.png",gameClick,"Supreme Commander 2","sc2Enabled","sc2", gUserinfo["sc2Path"],"na","na") # Supreme Commander 2
+    interfaceCreateGameButton(r"data\scfa.png",gameClick,"Forged Alliance","scfaEnabled","fa", gUserinfo["scfaPath"],"na","na") # Supreme Commander Forged Alliance
+    interfaceCreateGameButton(r"data\tamayhem.png",gameClick,"Total Annihilation Mayhem","taMayhemEnabled","taMay", gUserinfo["taMayhemPath"],"na","na") # Total Annihilation Mayhem
+    interfaceCreateGameButton(r"data\ta.png",gameClick,"Total Annihilation","taEnabled","ta", gUserinfo["taPath"],"na","na") # Total Annihilation
+    interfaceCreateGameButton(r"data\twilight.png",gameClick,"Total Annihilation Twilight","taTwilightEnabled","taTwilight", gUserinfo["taTwilightPath"],"na","na") # Total Annihilation Twilight
+    interfaceCreateGameButton(r"data\taZero.png",gameClick,"Total Annihilation Zero","taZeroEnabled","taZero", gUserinfo["taZeroPath"],"na","na") # Total Annihilation Zero
+    interfaceCreateGameButton(r"data\client_taforever.png" ,gameClick,"Total Annihilation Forever","taforeverEnabled","taforever", gUserinfo["taforeverPath"],"na","na") # Total Annihilation Forever
+    interfaceCreateGameButton(r"data\taSteam.png",gameClick,"Total Annihilation Steam","taSteamEnabled","taSteam", gUserinfo["taSteamPath"],"steam","TotalA.exe") # Total Annihilation (Steam)
+    interfaceCreateGameButton(r"data\scSteam.png",gameClick,"Supreme Commander Steam","scSteamEnabled","steamSC", gUserinfo["scSteamPath"],"steam","SupremeCommander.exe") # Supreme Commander(Steam)
+    interfaceCreateGameButton(r"data\scfaSteam.png",gameClick,"Forged Alliance Steam","scfaSteamEnabled","steamFAF", gUserinfo["scSteamPath"],"steam","SupremeCommander.exe") # Supreme Commander Forged Alliance(Steam)
+    interfaceCreateGameButton(r"data\sc2Steam.png",gameClick,"Supreme Commander 2 Steam","sc2SteamEnabled","sc2Steam", gUserinfo["sc2SteamPath"],"steam","SupremeCommander2.exe") # Supreme Commander 2 Steam
+    interfaceCreateGameButton(r"data\paSteam.png",gameClick,"Planetary Annihilation Steam","paSteamEnabled","paSteam", gUserinfo["paSteamPath"],"steam","PA.exe") # Planetary Annihilation (Steam)
+    interfaceCreateGameButton(r"data\zerok.png",gameClick,"Zero-K Steam","ZerokEnabled","ZeroK", gUserinfo["ZerokPath"],"steam","Zero-K.exe") # Zero-K (Steam)
+    
+#File settings window
+def def_settings() -> None:
+    def f_bound_to_mousewheel(event):
+        pSettingsCanvas.bind_all("<MouseWheel>", f_on_mousewheel)  
+
+    def f_unbound_to_mousewheel(event):
+        pSettingsCanvas.unbind_all("<MouseWheel>") 
+
+    def f_on_mousewheel(event):
+        pSettingsCanvas.yview_scroll(int(-1*(event.delta/120)), "units")
+    
+    def checkboxCheck(pVarName,pEntryPath,pIniData,pIniPath):
+            pVarNameValue = pVarName.get() # Cache the get() value of pVarName
+            pEntryPathValue = pEntryPath.get() # Cache the get() value of pEntryPath
+            if pVarNameValue == 1: # Check if state of the checkbox is checked
+                gUserinfo[pIniData] = "1" # Set changed user data of game enabled
+                gUserinfo[pIniPath] = pEntryPathValue # Set changed user data of game path 
+                if pIniData not in pLockedGamePaths: # Lock games with steam paths
+                    if os.path.isfile(pEntryPathValue): # Check path of pEntryPathValue
+                        pEntryPath.configure(state=NORMAL) # Unlock the game path location
+                    else: 
+                        pFilename = askopenfilename() # Open file explorer to locate file
+                        pEntryPath.configure(state=NORMAL) # Unlock the game path location
+                        if pFilename != "": # Check for blank path        
+                            pEntryPath.delete (0, END) # Clear the data in entry
+                            pEntryPath.insert(END, Path(pFilename)) # Insert file name into
+            elif pVarNameValue == 0: # Check if state of the checkbox is unchecked
+                gUserinfo[pIniData] = "0" # Set changed user data of game enabled
+                gUserinfo[pIniPath] = pEntryPathValue # Set changed user data of game path
+                pEntryPath.configure(state=DISABLED) # Lock the game path location
+            read_wright_config("w") # Wright to the ini file with the updated settings
+
+    #Create settings menu
+    def settingsCreateOptions(pLabelName,pLinkDefault,pIniData,pIniPath) -> None:     
+        global gSettingsRow  
+        pVarName = IntVar() # Var for checkBox variable
+        pSettingsGamelabel = customtkinter.CTkLabel(pSettingsScrollFrame, text=pLabelName,font =("Orbitron", 14)) # Create label for grid layout
+        pEntryPath = Entry(pSettingsScrollFrame,width=100) # Create a new enray for game location
+        pGameLinkArray.append(pEntryPath) # Add game link to array  
+        pGameCheckBox = customtkinter.CTkCheckBox(pSettingsScrollFrame, text="Enable", command=partial(checkboxCheck,pVarName,pEntryPath,pIniData,pIniPath),
+            font =("Orbitron", 14), variable=pVarName, onvalue=1, offvalue=0)
+        pSettingsGamelabel.grid(column=1,row=gSettingsRow,padx=100, pady=2) # Set lable location
+        gSettingsRow = gSettingsRow + 1 # Add row count
+        pGameCheckBox.grid(column=1,row=gSettingsRow,padx=100, pady=2) # Set check box location
+        gSettingsRow = gSettingsRow + 1 # Add row count
+        pEntryPath.grid(column=1,row=gSettingsRow,padx=100, pady=2) # Set entry loation
+        gSettingsRow = gSettingsRow + 1 # Add row count
+        pEntryPath.insert(END, pLinkDefault) # Add the saved game link string
+        pEntryPath.configure(state=DISABLED)# Disable the entry 
+        if gUserinfo[pIniData] == "1": # Check the saved data if the user has enabled the game
+            pGameCheckBox.select() # If game is selected check the box
+            if pIniData not in pLockedGamePaths: # Exclude steam paths
+                pEntryPath.configure(state=NORMAL) # Enable the entry
+
+    #Create checkboxes
+    def def_settings_CheckBox(pIniData,pCheckboxText) -> None:
+        def checkboxButtonClick(): # Check if the checkbox is enabled 
+            if pCheckboxValue.get() == 1:
+                gUserinfo[pIniData] = "1" # Set ini data
+            if pCheckboxValue.get() == 0:
+                gUserinfo[pIniData] = "0" # Set ini data
+            read_wright_config("w") 
+        pCheckboxValue = IntVar() # Var for pCheckboxButton variable
+        # Create a new checkbox Button
+        pCheckboxButton = customtkinter.CTkCheckBox(pSettingsWindow, text=pCheckboxText,variable=pCheckboxValue, onvalue=1, offvalue=0, command=checkboxButtonClick,font =("Orbitron", 14))
+        pCheckboxButton.pack(anchor="w",pady=4,padx=5) # Add the checkbox 
+        if gUserinfo[pIniData] == "1": # Check ini data for checkbox status
+            pCheckboxButton.select() # Select the check box if user saved data is checked
+
+    #Apply button
+    def applyCall() -> None:
+        # Save the user data to the ini
+        # global pGameLinkArray
+        # Save the game path data to the config file
+        gUserinfo["scSteamPath"] = pGameLinkArray[0].get()
+        gUserinfo["scfaSteamPath"] = pGameLinkArray[1].get()
+        gUserinfo["scPath"] = pGameLinkArray[2].get()
+        gUserinfo["scfaPath"] = pGameLinkArray[3].get()
+        gUserinfo["fafPath"] = pGameLinkArray[4].get()
+        gUserinfo["downlordClientPath"] = pGameLinkArray[5].get()
+        gUserinfo["loudPath"] = pGameLinkArray[6].get()
+        gUserinfo["mapedirorscPath"] = pGameLinkArray[7].get()
+        gUserinfo["sc2SteamPath"] = pGameLinkArray[8].get()
+        gUserinfo["sc2Path"] = pGameLinkArray[9].get()
+        gUserinfo["paSteamPath"] = pGameLinkArray[10].get()
+        gUserinfo["taforeverPath"] = pGameLinkArray[11].get()
+        gUserinfo["taSteamPath"] = pGameLinkArray[12].get()
+        gUserinfo["taPath"] = pGameLinkArray[13].get()
+        gUserinfo["taEscalationPath"] = pGameLinkArray[14].get()
+        gUserinfo["taMayhemPath"] = pGameLinkArray[15].get()
+        gUserinfo["taProTAPath"] = pGameLinkArray[16].get()
+        gUserinfo["taTwilightPath"] = pGameLinkArray[17].get()
+        gUserinfo["taZeroPath"] = pGameLinkArray[18].get()
+        gUserinfo["absoluteAnnPath"] = pGameLinkArray[19].get()
+        gUserinfo["barPath"] = pGameLinkArray[20].get()
+        gUserinfo["ZerokPath"] = pGameLinkArray[21].get()
+        read_wright_config("w")
+        createInterface() # Recreate the window interface
+        pSettingsWindow.destroy() # Close the settings window
+        theme_update()
+
+    pLockedGamePaths = ["scSteamEnabled", "sc2SteamEnabled", "scfaSteamEnabled","paSteamEnabled", "taSteamEnabled", "ZerokEnabled"] # List of Locked games with paths
+    pGameLinkArray = [] # Array to hold all the game urls 
+    pWindowWidth = 810
+    pWindowHeight = 768
+    pSettingsWindow = customtkinter.CTkToplevel(gMainWindow) #Use customtkinter for the style of the toplevel window
+    pSettingsWindow.title("Settings") # Set the Window title name
+    pSettingsWindow.after(200, lambda: pSettingsWindow.iconbitmap(gIconPath))
+    pSettingsWindow.grab_set() # Makes the window modal (blocks interaction with the main window)
+    pSettingsWindow.resizable(False, False) # Disables window resizing 
+    pSettingsWindow.geometry('%dx%d+%d+%d' % (pWindowWidth, pWindowHeight, (pWindowWidth / 1.5), (pWindowHeight / 6))) #set window size and location
+    pSettingsFrame = customtkinter.CTkFrame(master=pSettingsWindow, border_width=0) # Create frame
+    pSettingsCanvas = Canvas(pSettingsFrame,bd=0, width= pWindowWidth-40, height=380, bg="#2B2B2B", highlightthickness=0) # Create canvas for frame
+    pSettingsFrameScrollbar = customtkinter.CTkScrollbar(pSettingsFrame, command=pSettingsCanvas.yview) # Create Scrollbar for canvas
+    pSettingsScrollFrame = customtkinter.CTkFrame(master=pSettingsCanvas) # Create 
+    pSettingsScrollFrame.bind("<Configure>", lambda e: pSettingsCanvas.configure(scrollregion=pSettingsCanvas.bbox("all"))) # bind pSettingsScrollFrame to pSettingsCanvas 
+    pSettingsCanvas.create_window((0, 0), window=pSettingsScrollFrame, anchor="nw") # New canvas for scrollable frame
+    pSettingsCanvas.configure(yscrollcommand=pSettingsFrameScrollbar.set) # Configure canvas
+    pSettingsCanvas.bind_all("<MouseWheel>", f_on_mousewheel) # Mouse Wheel scroll
+    pSettingsCanvas.bind('<Enter>', f_bound_to_mousewheel)
+    pSettingsCanvas.bind('<Leave>', f_unbound_to_mousewheel)
+    pSettingsFrame.pack()
+    pSettingsCanvas.pack(side="left", fill="both", expand=False)
+    pSettingsFrameScrollbar.pack(side="right", fill="y")    
+    #Create the settings interface 
+    settingsCreateOptions("Supreme Commander (Steam)",gUserinfo["scSteamPath"] ,"scSteamEnabled","scSteamPath")        
+    settingsCreateOptions("Forged Alliance (Steam)",gUserinfo["scfaSteamPath"] ,"scfaSteamEnabled","scfaSteamPath")
+    settingsCreateOptions("Supreme Commander",gUserinfo["scPath"] ,"scEnabled","scPath")        
+    settingsCreateOptions("Forged Alliance",gUserinfo["scfaPath"] ,"scfaEnabled","scfaPath")
+    settingsCreateOptions("Forged Alliance Forever",gUserinfo["fafPath"],"fafEnabled","fafPath")
+    settingsCreateOptions("Downlord's FAF Client",gUserinfo["downlordClientPath"] ,"downlordClientEnabled","downlordClientPath")
+    settingsCreateOptions("LOUD Forged Alliance",gUserinfo["loudPath"] ,"loudEnabled","loudPath")
+    settingsCreateOptions("FAF Map Editor",gUserinfo["mapedirorscPath"] ,"mapeditorEnabled","mapedirorscPath")
+    settingsCreateOptions("Supreme Commander 2 (Steam)",gUserinfo["sc2SteamPath"] ,"sc2SteamEnabled","sc2SteamPath")   
+    settingsCreateOptions("Supreme Commander 2",gUserinfo["sc2Path"] ,"sc2Enabled","sc2Path")   
+    settingsCreateOptions("Planetary Annihilation (Steam)",gUserinfo["paSteamPath"] ,"paSteamEnabled","paSteamPath")
+    settingsCreateOptions("Total Annihilation Forever",gUserinfo["taforeverPath"] ,"taforeverEnabled","taforeverPath")
+    settingsCreateOptions("Total Annihilation (Steam)",gUserinfo["taSteamPath"] ,"taSteamEnabled","taSteamPath")
+    settingsCreateOptions("Total Annihilation",gUserinfo["taPath"] ,"taEnabled","taPath")
+    settingsCreateOptions("Total Annihilation Escalation",gUserinfo["taEscalationPath"] ,"taEscalationEnabled","taEscalationPath")
+    settingsCreateOptions("Total Annihilation Mayhem",gUserinfo["taMayhemPath"] ,"taMayhemEnabled","taMayhemPath")
+    settingsCreateOptions("Total Annihilation ProTA",gUserinfo["taProTAPath"] ,"taProTAEnabled","taProTAPath")
+    settingsCreateOptions("Total Annihilation Twilight",gUserinfo["taTwilightPath"] ,"taTwilightEnabled","taTwilightPath")
+    settingsCreateOptions("Total Annihilation Zero",gUserinfo["taZeroPath"] ,"taZeroEnabled","taZeroPath")
+    settingsCreateOptions("Absolute Annihilation",gUserinfo["absoluteAnnPath"] ,"absoluteAnnEnabled","absoluteAnnPath")
+    settingsCreateOptions("Beyond All Reason",gUserinfo["barPath"] ,"barEnabled","barPath")
+    settingsCreateOptions("Zero-K (Steam)",gUserinfo["ZerokPath"] ,"ZerokEnabled","ZerokPath")
+
+    #Create the Checkboxes 
+    def_settings_CheckBox("darkModeEnabled","Dark Mode")
+    def_settings_CheckBox("minimizeallEnabled","Minimize all windows on game launch")
+    def_settings_CheckBox("lockCursorEnabled","Lock cursor to active window when in windowed mode (Supported Games: SC,FA,FAF,LOUD) ")
+    def_settings_CheckBox("autoSetMonitorEnabled","Auto set game window size when in windowed mode (Supported Games: SC,FA,FAF,LOUD Default 1920x1080) ")
+    def_settings_CheckBox("autoSetDualScreenEnabled","Enable auto dual screen switcher (Experimental, needs Common Mod Tools and ui-party enabled, only for FA,FAF,LOUD)")
+    def_settings_CheckBox("dualScreenDefaultEnabled","Start supported games in dual screen by default")
+
+    pHotkey1 = create_Label(pSettingsWindow, "Ctrl F12 (Switches to dual screen mode)", ("Orbitron", 14), TOP, "left","w") 
+    pHotkey2 = create_Label(pSettingsWindow, "Ctrl F11 (Switches to single screen mode)", ("Orbitron", 14), TOP, "left","w") 
+    pHotkey3 = create_Label(pSettingsWindow, "Ctrl F10 (End the ahk script)", ("Orbitron", 14), TOP, "left","w") 
+    pNote1 = create_Label(pSettingsWindow, "For windowed dual screen mode install Common Mod Tools Mod and ui-party mod then enabled ui-party in", ("Orbitron", 14), TOP, "left","w") 
+    pNote2 = create_Label(pSettingsWindow, "the mod menu. Within each game set the primary adapter to windowed and disable the secondary adapter.", ("Orbitron", 14),TOP, "left","w") 
+    pNote3 = create_Label(pSettingsWindow, "(Supported Games for dual screen: FA,FAF,LOUD)", ("Orbitron", 14), TOP, "left","w") 
+
+    #Add the apply button to the setting menu    
+    pApplyButton = customtkinter.CTkButton(pSettingsWindow, text = "Apply", width = 10, command = applyCall)
+    pSettingsWindow.protocol("WM_DELETE_WINDOW", applyCall)
+    pApplyButton.pack(side = TOP)
+
+#A bout interface
+def def_about() -> None:
+    pAboutWindow = customtkinter.CTkToplevel(gMainWindow) # Use customtkinter for the style of the toplevel window
+    pAboutWindow.title("About") # Set the Window title name
+    pAboutWindow.grab_set() # Makes the window modal (blocks interaction with the main window)
+    pAboutWindow.resizable(False, False) # Disables window resizing 
+    pAboutWindow.geometry('%dx%d+%d+%d' % (700, 583, (700/1.2), (583/4))) # Set window size and location (consider margins and window manager decorations)
+    #Labels
+    pAppVersionLabel = create_Label(pAboutWindow, gLauncherName + " - " + gVersion, ("Orbitron", 14), TOP, "left","center") 
+    pScriptVersionLabel = create_Label(pAboutWindow, "Supreme Commander Definitive Windowed Borderless Script - " + gScriptVersion + " AutoHotkeyU32 1.1.37.02", ("Orbitron", 14), TOP,"left","center") 
+    pPythonVersionLabel = create_Label(pAboutWindow, "Python Version - " + gPythonVersion, ("Orbitron", 14), TOP,"left","center") 
+    pCreatedByLabel = create_Label(pAboutWindow, "Created by ageekhere 2024", ("Orbitron", 14), TOP,"left","center")
+    pGithubLabel = create_Label(pAboutWindow, "https://github.com/ageekhere/Definitive-Supreme-Commander-Launcher", ("Orbitron", 14), TOP,"left","center")
+    pGithubLabel.configure(text_color=("white", "blue"))
+    pGithubLabel.bind("<Button-1>", lambda event, link="https://github.com/ageekhere/Definitive-Supreme-Commander-Launcher": weblink_open(link, event))
+    pGameListLabel = create_Label(pAboutWindow, "\n\
+        Supported Games \n \n\
+        Absolute Annihilation \n\
+        Downlord's FAF Client \n\
+        FAF Map Editor \n\
+        Forged Alliance \n\
+        Forged Alliance Forever \n\
+        Forged Alliance LOUD \n\
+        Forged Alliance(Steam) \n\
+        Planetary Annihilation(Steam) \n\
+        Supreme Commander \n\
+        Supreme Commander 2 \n\
+        Supreme Commander(Steam) \n\
+        Total Annihilation \n\
+        Total Annihilation Escalation \n\
+        Total Annihilation Forever \n\
+        Total Annihilation Mayhem \n\
+        Total Annihilation ProTA \n\
+        Total Annihilation Twilight \n\
+        Total Annihilation Zero \n\
+        Zero-K(Steam)", ("Orbitron", 14), LEFT,"left","center")
+
+#global variables
+gLauncherName = "Definitive Supreme Commander Launcher" # App name
+gPythonVersion = "3.12.2" # Python version app is using
+gVersion = "1.04" # App version
+gGitVersionName ="version1.04" # Current app git version name
+gScriptVersion = "1.11" # Version of autohotkey script
+gConfigPath = Path("./config/config.ini") # Relative path to INI file
+gIconPath = "icon/dscl_icon.ico" # Icon path
+gUserData = ConfigParser() # New ConfigParser to reference an INI file
+gInterfaceRow = 0 # Row grid layout of the main interface
+gInterfaceCol = 0 # Col grid layout of the main interface
+gSettingsRow = 0 # Keeps track of the row in settings
+#Main
+customtkinter.deactivate_automatic_dpi_awareness() # Disable DPI scaling for now - note that this can be improved to scale
+if gConfigPath.is_file(): # Check if the INI file exists
+    read_wright_config("r") # Read the config file
+else: # Set the defaults of the INI file if the file does not exists and create it
+    gUserData["USERINFO"] = {
     "scSteamEnabled": "0",
     "scSteamPath": r"steam://rungameid/9350",
     "scfaSteamEnabled": "0",
@@ -86,6 +422,8 @@ else: #set the defaults of the INI file if the file does not exists
     "taTwilightPath": r"C:\totala.exe",
     "taZeroEnabled":"0",
     "taZeroPath": r"C:\TotalA.exe",
+    "absoluteAnnEnabled":"0",
+    "absoluteAnnPath": r"C:\TotalA.exe",
     "barEnabled":"0",
     "barPath": r"C:\Beyond-All-Reason.exe",
     "ZerokEnabled":"0",
@@ -93,476 +431,91 @@ else: #set the defaults of the INI file if the file does not exists
     "lockCursorEnabled": "1",
     "autoSetMonitorEnabled": "1",
     "autoSetDualScreenEnabled": "0",
-    }
-    #Write the above default settings to the INI file
-    with open('./config/config.ini', 'w') as conf: 
-        userData.write(conf)
-    userData.read("./config/config.ini") #Read the ini file
+    "updateLastCheck": "2024-03-27",
+    "updateLatestVersion": "version1.04",
+    "darkModeEnabled":"1",
+    "minimizeallEnabled":"1",
+    "dualScreenDefaultEnabled":"0",
+    } 
+    read_wright_config("w") # Wright to the config
+    read_wright_config("r") # Read the new config
 
-userinfo = userData["USERINFO"] #Store the INI settings information
-window = Tk() #Create the main window interface
-window.title(launcherName + " - " + version) #Set the title of the window
+gUserinfo = gUserData["USERINFO"] # Store the INI settings information
+theme_update() # Update the app theme
 
-p1 = PhotoImage(file = 'data\dscl.png')
-window.iconphoto(False, p1)
-
-#window.iconbitmap(r"data\dscl.ico")
-
-#Fixes DPI scaling issues
-awareness = ctypes.c_int()
-errorCode = ctypes.windll.shcore.SetProcessDpiAwareness(2)
-success = ctypes.windll.user32.SetProcessDPIAware()
-
+# Create the main window for the app 
+gMainWindow = customtkinter.CTk() # Use customtkinter for the style of the main window
+gMainWindow.title(gLauncherName + " - " + gVersion) # Set the title of the Main window
+gMainWindow.iconbitmap(gIconPath) # Set the icon image for the window
 #set the size and position of the main window
-w = 1110 # width for the Tk root
-h = 720 # height for the Tk root
-x = (w/3) #Center the main window
-y = (h/6)
-window.geometry('%dx%d+%d+%d' % (w, h, x, y)) #set window size and location
-window['background']='#1A1A1A' #Set background color
-window.resizable(0,0) #disable window maximize
+gMainWindowWidth = 1110 # width for the Tk root
+gMainWindowHeight = 768  # height for the Tk root
+gMainWindowX = (gMainWindowWidth/3) #Center the main window
+gMainWindowY = (gMainWindowHeight/6)
+gMainWindow.geometry('%dx%d+%d+%d' % (gMainWindowWidth, gMainWindowHeight, gMainWindowX, gMainWindowY)) #set window size and location
+gMainWindow.resizable(0,0) #disable window maximize
 
-#Creates a file menu
-my_menu=Menu(window)
-window.config(menu=my_menu)
+#Options menu
+optionmenu_var = customtkinter.StringVar(value="Menu")  # set the menu option for the file menu
+# Options menu settings
+optionsMenu = customtkinter.CTkOptionMenu(master=gMainWindow,
+    values=["Settings", "About", "Exit"],
+    command=optionmenu_callback,
+    variable=optionmenu_var,
+    width=80,
+    corner_radius=0,
+    font=("Orbitron", 16),
+    dropdown_font=("Orbitron", 15))
+optionsMenu.pack(side="top", anchor=NW) # Add options menu 
 
-#global variables
-gameLinkArray = []
-interfaceRow = 0
-interfaceCol = 0
-settingsRow = 0
-settingsCol = 0
+pError = 0 # Error checker for updater
+pToday = str(date.today()) # Get todays date
 
-#When active Popen to the AHK script with parameters
-def supremeCommanderSteamClick():
-    subCall.Popen(["scripts/AutoHotkeyU32.exe", "scripts/main.ahk","steamSC",userinfo["scSteamPath"],
-    userinfo["lockCursorEnabled"],userinfo["autoSetMonitorEnabled"],userinfo["autoSetDualScreenEnabled"],"SupremeCommander.exe"])
+if gUserinfo["updateLatestVersion"] != gGitVersionName : # Check for an already detected updated
+    pUpdateButton = customtkinter.CTkButton(gMainWindow, text="Update Available " + gUserinfo["updateLatestVersion"], command=update_event) # Add update button
+    pUpdateButton.pack(side="bottom", anchor=N) # Pack button    
 
-def supremeCommanderFaSteamClick():
-    subCall.Popen(["scripts/AutoHotkeyU32.exe", "scripts/main.ahk","steamFAF",userinfo["scfaSteamPath"],
-    userinfo["lockCursorEnabled"],userinfo["autoSetMonitorEnabled"],userinfo["autoSetDualScreenEnabled"],"SupremeCommander.exe"])
+elif pToday != gUserinfo["updateLastCheck"] : # Check if the updater has already checked for an update today
+    gUserinfo["updateLastCheck"] = pToday # Update last update check
+    read_wright_config("w") # Wright to config
+    try:
+        pResponse = requests.get("https://api.github.com/repos/ageekhere/Definitive-Supreme-Commander-Launcher/releases/latest",timeout=1) # Check for update
+        pResponse.raise_for_status()
+    except requests.exceptions.HTTPError as errh:
+        raise SystemExit(errh)
+        pError = 1 # ("errh",errh)
+    except requests.exceptions.RequestException as errex: 
+        pError = 2 # ("Exception request",errex)
+    except requests.exceptions.ReadTimeout as errrt: 
+        pError = 3 # ("Time out",errrt) 
+    except RequestException as e:
+        pError = 4 # (f"An error occurred: {e}")
+    else:    
+        if str(pResponse) != "<Response [403]>" and str(pResponse) == "<Response [200]>": # Check data
+            pResponse = pResponse.json()["tag_name"] # Get version name
+            gUserinfo["updateLatestVersion"] = str(pResponse) # Update latest version
+            read_wright_config("w") # Wright to config
+            if pResponse != gGitVersionName: # Check if the update button is added
+                pUpdateButton = customtkinter.CTkButton(gMainWindow, text="Update Available " + pResponse, command=update_event) # Create new update button
+                pUpdateButton.pack(side="bottom", anchor=N) # Add button
 
-def supremeCommanderClick():
-    startGame(userinfo["scPath"],"sc")
-
-def supremeCommanderFaClick():
-    startGame(userinfo["scfaPath"],"fa")
-
-def ForgedAllianceForeverClick():
-    startGame(userinfo["fafPath"],"faf")
-
-def downlordsClientClick():
-    startGame(userinfo["downlordClientPath"],"client")
-
-def loudClick():
-    startGame(userinfo["loudPath"],"loud")
-
-def fafMapEditorClick():
-    startGame(userinfo["mapedirorscPath"],"mapeditor")
-
-def taforeverClick():
-    startGame(userinfo["taforeverPath"],"taforever")
-
-def sc2Click():
-    startGame(userinfo["sc2Path"],"sc2")
-
-def sc2SteamClick():
-    subCall.Popen(["scripts/AutoHotkeyU32.exe", "scripts/main.ahk","sc2Steam",userinfo["sc2SteamPath"],
-    userinfo["lockCursorEnabled"],userinfo["autoSetMonitorEnabled"],userinfo["autoSetDualScreenEnabled"],"SupremeCommander2.exe"])
-
-def taSteamClick():
-    subCall.Popen(["scripts/AutoHotkeyU32.exe", "scripts/main.ahk","taSteam",userinfo["taSteamPath"],
-    userinfo["lockCursorEnabled"],userinfo["autoSetMonitorEnabled"],userinfo["autoSetDualScreenEnabled"],"TotalA.exe"])
-
-def taClick():
-    startGame(userinfo["taPath"],"ta")
-
-def taEscClick():
-    startGame(userinfo["taEscalationPath"],"taEscalation")
-
-def taMayClick():
-    startGame(userinfo["taMayhemPath"],"taMay")
-
-def taProClick():
-    startGame(userinfo["taProTAPath"],"taPro")
-
-def taTwiClick():
-    startGame(userinfo["taTwilightPath"],"taTwilight")
-
-def taZeroClick():
-    startGame(userinfo["taZeroPath"],"taZero")
-
-def zerokClick():
-    subCall.Popen(["scripts/AutoHotkeyU32.exe", "scripts/main.ahk","ZeroK",userinfo["ZerokPath"],
-    userinfo["lockCursorEnabled"],userinfo["autoSetMonitorEnabled"],userinfo["autoSetDualScreenEnabled"],"Zero-K.exe"])
-
-def barClick():
-    startGame(userinfo["barPath"],"bar")
-
-def paSteamClick():
-    subCall.Popen(["scripts/AutoHotkeyU32.exe", "scripts/main.ahk","paSteam",userinfo["paSteamPath"],
-    userinfo["lockCursorEnabled"],userinfo["autoSetMonitorEnabled"],userinfo["autoSetDualScreenEnabled"],"PA.exe"])
-
-def startGame(path,name):
-    gameLocation = r'%s' %path
-    gameExe = gameLocation.split('\\')[-1]
-    fixedGameLocation = gameLocation.replace(gameExe, "", 1)
-    subCall.Popen(["scripts/AutoHotkeyU32.exe", "scripts/main.ahk",name,fixedGameLocation,
-    userinfo["lockCursorEnabled"],userinfo["autoSetMonitorEnabled"],userinfo["autoSetDualScreenEnabled"],gameExe])
-
+read_wright_config("r") # Read updated config
 #new interface canvas
-interface = Canvas(window, bg="#1A1A1A", height=h, width=w-22,confine = True)
-home_scroll_y = Scrollbar(interface, orient="vertical", command=interface.yview,bg="#1A1A1A") #Scrollbar
-interface.configure(yscrollcommand=home_scroll_y.set) #Configure interface to use scrollbar
-    
-homeContainer = Frame(interface) #New frame
-homeCanvas = Canvas(homeContainer,width= w-22,height=h,bg="#1A1A1A") #New Canvas
-homeScrollbar = Scrollbar(homeContainer, orient="vertical", command=homeCanvas.yview) #New scrollbar
-homeScrollable_frame = Frame(homeCanvas,bg="#1A1A1A") #New frame
-#Scrollable frame for interface
-homeScrollable_frame.bind(
-    "<Configure>",
-    lambda e: homeCanvas.configure(
-        scrollregion=homeCanvas.bbox("all")
-    )
-)
-homeCanvas.create_window((0, 0), window=homeScrollable_frame, anchor="nw") #new window
-homeCanvas.configure(yscrollcommand=homeScrollbar.set) #configure scrollbar
-#Add the new interface items
-homeContainer.pack()
-homeCanvas.pack(side="left", fill="both", expand=True)
-homeScrollbar.pack(side="right", fill="y")
-interface.pack()
+gMainWindowCanvas = Canvas(gMainWindow) # Main canvas 
+pHomeContainer = customtkinter.CTkFrame(master=gMainWindowCanvas) # New frame
+gHomeCanvas = Canvas(pHomeContainer,width= gMainWindowWidth-22,height=gMainWindowHeight,bg="#2B2B2B",highlightthickness=0,bd=0) #New Canvas
+pHomeScrollbar = customtkinter.CTkScrollbar(pHomeContainer, command=gHomeCanvas.yview) # Scroll bar for pHomeContainer 
+gHomeScrollable_frame = customtkinter.CTkFrame(master=gHomeCanvas) #Scrollable frame for gHomeCanvas 
+gHomeScrollable_frame.bind("<Configure>",lambda e: gHomeCanvas.configure(scrollregion=gHomeCanvas.bbox("all"))) #Scrollable frame for bind gHomeCanvas 
+gHomeCanvas.create_window((0, 0), window=gHomeScrollable_frame, anchor="nw") # New window
+gHomeCanvas.configure(yscrollcommand=pHomeScrollbar.set) # Configure scrollbar
+pHomeContainer.pack() # Add the new gMainWindowCanvas items
+gHomeCanvas.pack(side="left", fill="both", expand=True)
+pHomeScrollbar.pack(side="right", fill="y")
+gMainWindowCanvas.pack()
+gHomeCanvas.bind_all("<MouseWheel>", _on_mousewheelHome)
+gHomeCanvas.bind('<Enter>', _bound_to_mousewheelHome)
+gHomeCanvas.bind('<Leave>', _unbound_to_mousewheelHome)
+createInterface() #create the main gMainWindowCanvas
 
-#Mouse Scroll funcations
-def _bound_to_mousewheelHome(event):
-    homeCanvas.bind_all("<MouseWheel>", _on_mousewheelHome)   
-
-def _unbound_to_mousewheelHome(event):
-    homeCanvas.unbind_all("<MouseWheel>") 
-
-def _on_mousewheelHome(event):
-    homeCanvas.yview_scroll(int(-1*(event.delta/120)), "units")
-
-homeCanvas.bind_all("<MouseWheel>", _on_mousewheelHome)
-homeCanvas.bind('<Enter>', _bound_to_mousewheelHome)
-homeCanvas.bind('<Leave>', _unbound_to_mousewheelHome)
-
-#Function, Creates the game buttons for the interface
-def interfaceCreateGameButton(link,fcommand,labelText,gameEnable):
-    if userinfo[gameEnable] == "0":
-        return #skip game if not enabled
-    global interfaceRow,interfaceCol #Global
-    imageName = Image.open(link) #open a new image at the link address
-    mW, mH = imageName.size #read image size
-    mH = int((mH*0.55)) #set image height
-    hpercent = (mH / float(imageName.size[1])) #find height percent
-    mW = int((float(imageName.size[0]) * float(hpercent))) #set width to scale with height
-    imageName = imageName.resize((mW,mH),Image.ANTIALIAS) #resize the image   
-    imageName = ImageTk.PhotoImage(imageName) #create a new PhotoImage of imageName after the resize 
-    label = tkinter.Label(image=imageName) #create a label with the image
-    label.image = imageName #set the label image
-    imageButton = Button(homeScrollable_frame, image=imageName, width=mW, height=mH,command=fcommand,bd=0,highlightthickness=0 ) #Make a image button
-    #make a grid with 3 columns
-    if interfaceCol > 2:
-        interfaceCol = 0
-        interfaceRow = interfaceRow + 2
-    interfaceCol = interfaceCol + 1
-    image1label = Label(homeScrollable_frame,bg="#1A1A1A",fg="#FFF", text = labelText) #Create a new label to act as a title for the image button
-    image1label.config(font =("Orbitron", 14), )#Set the font of the Label
-    image1label.grid(row=interfaceRow,column=interfaceCol) #add lable as grid
-    imageButton.grid(row=interfaceRow+1,column=interfaceCol,padx=30, pady=10) #add button as grid
-    interface.config(scrollregion=interface.bbox(ALL)) #configure the scroll region 
-
-#Function, create the main interface
-def createInterface(): 
-    #reset the col and row number
-    global interfaceRow
-    global interfaceCol
-    interfaceRow = 0
-    interfaceCol = 0
-    #delete all content form the homeScrollable_frame
-    for widget in homeScrollable_frame.winfo_children():
-        widget.destroy()
-    #Add images to interface,interfaceCreateGameButton(string image location, function click, string name, string enabled)
-    interfaceCreateGameButton(r"data\scSteam.png",supremeCommanderSteamClick,"Supreme Commander Steam","scSteamEnabled") #Supreme Commander(Steam)
-    interfaceCreateGameButton(r"data\scfaSteam.png",supremeCommanderFaSteamClick,"Forged Alliance Steam","scfaSteamEnabled") #Supreme Commander Forged Alliance(Steam)
-    interfaceCreateGameButton(r"data\sc.png",supremeCommanderClick,"Supreme Commander","scEnabled") #Supreme Commander
-    interfaceCreateGameButton(r"data\scfa.png",supremeCommanderFaClick,"Forged Alliance","scfaEnabled") #Supreme Commander Forged Alliance
-    interfaceCreateGameButton(r"data\imagefaf.png",ForgedAllianceForeverClick,"Forged Alliance Forever","fafEnabled") #Supreme Commander Forged Alliance Forever
-    interfaceCreateGameButton(r"data\client.png",downlordsClientClick,"Downlord's FAF Client","downlordClientEnabled") #Downlord's FAF Client
-    interfaceCreateGameButton(r"data\loud.png",loudClick,"Forged Alliance LOUD","loudEnabled") #Supreme Commander Forged Alliance LOUD
-    interfaceCreateGameButton(r"data\mapeditor.png",fafMapEditorClick,"FAF Map Editor","mapeditorEnabled") #FAF Map Editor
-    interfaceCreateGameButton(r"data\sc2Steam.png",sc2SteamClick,"Supreme Commander 2 Steam","sc2SteamEnabled") #Supreme Commander 2 Steam
-    interfaceCreateGameButton(r"data\sc2.png",sc2Click,"Supreme Commander 2","sc2Enabled") #Supreme Commander 2
-    interfaceCreateGameButton(r"data\paSteam.png",paSteamClick,"Planetary Annihilation Steam","paSteamEnabled") #Planetary Annihilation (Steam)
-    interfaceCreateGameButton(r"data\client_taforever.png" ,taforeverClick,"Total Annihilation Forever","taforeverEnabled") #Total Annihilation Forever
-    interfaceCreateGameButton(r"data\taSteam.png",taSteamClick,"Total Annihilation Steam","taSteamEnabled") #Total Annihilation (Steam)
-    interfaceCreateGameButton(r"data\ta.png",taClick,"Total Annihilation","taEnabled") #Total Annihilation
-    interfaceCreateGameButton(r"data\escalation.png",taEscClick,"Total Annihilation Escalation","taEscalationEnabled") #Total Annihilation Escalation
-    interfaceCreateGameButton(r"data\tamayhem.png",taMayClick,"Total Annihilation Mayhem","taMayhemEnabled") #Total Annihilation Mayhem
-    interfaceCreateGameButton(r"data\prota.png",taProClick,"Total Annihilation ProTA","taProTAEnabled") #Total Annihilation ProTA
-    interfaceCreateGameButton(r"data\twilight.png",taTwiClick,"Total Annihilation Twilight","taTwilightEnabled") #Total Annihilation Twilight
-    interfaceCreateGameButton(r"data\taZero.png",taZeroClick,"Total Annihilation Zero","taZeroEnabled") #Total Annihilation Zero
-    interfaceCreateGameButton(r"data\zerok.png",zerokClick,"Zero-K Steam","ZerokEnabled") #Zero-K (Steam)
-    interfaceCreateGameButton(r"data\bar.png",barClick,"Beyond All Reason","barEnabled") #Beyond All Reason
-
-createInterface() #create the main interface
-
-#File settings window
-def def_settings():
-    global gameLinkArray
-    gameLinkArray = [] #reinitialize the array
-    settingsWindow = Toplevel() #make a new Toplevel window for settings
-    settingsWindow.title("Settings") #Settings windows title
-    settingsWindow['background']='#1A1A1A' #Settings window background color
-    settingsWindow.wait_visibility() #wait for the new window to be visible
-    settingsWindow.grab_set() #route events for this application to this widget.
-    settingsWindow.resizable(False, False) #Set window resizeable to false 
-    w = 700 # width for setting menu
-    h = settingsWindow.winfo_screenheight() * 71 * 0.01 #70% of height window
-    x = (w/1.2) #Center the main window
-    y = (h/7)
-    settingsWindow.geometry('%dx%d+%d+%d' % (w, h, x, y)) #set window size and location
-    #new interface canvas
-    container = Frame(settingsWindow) #New frame window for scroll conent
-    canvas = Canvas(container,width= w-20,height=420,bg="#1A1A1A") #new canvas for scroll content
-    scrollbar = Scrollbar(container, orient="vertical", command=canvas.yview) #new Scrollbar
-    scrollable_frame = Frame(canvas,bg="#1A1A1A") #scrollable frame
-    #bind the frame to the scroll region
-    scrollable_frame.bind(
-        "<Configure>",
-        lambda e: canvas.configure(
-            scrollregion=canvas.bbox("all")
-        )
-    )
-    canvas.create_window((0, 0), window=scrollable_frame, anchor="nw") #New canvas for scrollable frame
-    canvas.configure(yscrollcommand=scrollbar.set) #Configure canvas
-    container.pack()
-    canvas.pack(side="left", fill="both", expand=True)
-    scrollbar.pack(side="right", fill="y")
-    #Scroll wheel
-    def _bound_to_mousewheel(event):
-        canvas.bind_all("<MouseWheel>", _on_mousewheel)   
-    def _unbound_to_mousewheel(event):
-        canvas.unbind_all("<MouseWheel>") 
-    def _on_mousewheel(event):
-        canvas.yview_scroll(int(-1*(event.delta/120)), "units")
-    canvas.bind_all("<MouseWheel>", _on_mousewheel)
-    canvas.bind('<Enter>', _bound_to_mousewheel)
-    canvas.bind('<Leave>', _unbound_to_mousewheel)
-
-    #Create settings menu
-    def settingsCreateOptions(labelName,linkDefault,iniData,iniPath):
-        #Checkbox change
-        def checkboxCheck(varName,entryPath,iniData,iniPath):
-            if varName.get() == 1: #check if state of the checkbox is checked
-                userinfo[iniData] = "1" #set changed user data of game enabled
-                userinfo[iniPath] = entryPath.get() #set changed user data of game path 
-                #lock games with steam paths
-                if iniData != "scSteamEnabled" and iniData != "sc2SteamEnabled" and iniData != "scfaSteamEnabled" and iniData != "paSteamEnabled" and iniData != "taSteamEnabled" and iniData != "ZerokEnabled":
-                    
-                    if os.path.isfile(entryPath.get()):
-                        entryPath.configure(state=NORMAL) #Unlock the game path location
-                    else: 
-                        filename = askopenfilename() #open file explorer to locate file
-                        filename = filename.replace("/", "\\")
-                        entryPath.configure(state=NORMAL) #Unlock the game path location 
-                        if filename != "":        
-                            entryPath.delete (0, END) #clear the data in entry
-                            entryPath.insert(END, filename) #insert file name into 
-                                  
-            if varName.get() == 0:#check if state of the checkbox is unchecked
-                userinfo[iniData] = "0" #set changed user data of game enabled
-                userinfo[iniPath] = entryPath.get() #set changed user data of game path
-                entryPath.configure(state=DISABLED) #lock the game path location
-            #Wright to the ini file with the updated settings
-            with open('./config/config.ini', 'w') as conf:
-                userData.write(conf)
-
-        global settingsRow        
-        varName = IntVar() #var for checkBox variable
-        userInfoData = userinfo[iniData] #get data from ini
-        settingslabel = Label(scrollable_frame,bg="#1A1A1A",fg="#FFF", text = labelName) #Create a new label
-        settingslabel.config(font =("Orbitron", 10)) #Set label font
-        entryPath = Entry(scrollable_frame,width=100) #Create a new enray for game location
-        gameLinkArray.append(entryPath) #Add game link to array
-        #Add a new checkbox
-        chckBox = Checkbutton(scrollable_frame, text="Enable",activebackground="#1A1A1A",activeforeground ="#FFF",bg="#1A1A1A",
-            fg="#FFF",selectcolor="#000", variable=varName, onvalue=1, offvalue=0, command=partial(checkboxCheck,varName,entryPath,iniData,iniPath),font =("Lato", 9))
-        settingslabel.grid(column=1,row=settingsRow,padx=30, pady=2) #set lable location
-        settingsRow = settingsRow + 1 #add row count
-        chckBox.grid(column=1,row=settingsRow,padx=30, pady=2) #set check box location
-        settingsRow = settingsRow + 1 #add row count
-        entryPath.grid(column=1,row=settingsRow,padx=30, pady=2) #set entry loation
-        settingsRow = settingsRow + 1 #add row count
-        entryPath.insert(END, linkDefault) #add the saved game link string
-        entryPath.configure(state=DISABLED)#disable the entry
-        #Check the saved data if the user has enabled the game
-        if userinfo[iniData] == "1":
-            chckBox.select() #If game is selected check the box
-            if iniData != "scSteamEnabled" and iniData != "sc2SteamEnabled" and iniData != "scfaSteamEnabled" and iniData != "paSteamEnabled" and iniData != "taSteamEnabled" and iniData != "ZerokEnabled":
-                entryPath.configure(state=NORMAL) #Enable the entry
-    #Create the settings interface 
-    settingsCreateOptions("Supreme Commander (Steam)",userinfo["scSteamPath"] ,"scSteamEnabled","scSteamPath")        
-    settingsCreateOptions("Forged Alliance (Steam)",userinfo["scfaSteamPath"] ,"scfaSteamEnabled","scfaSteamPath")
-    settingsCreateOptions("Supreme Commander",userinfo["scPath"] ,"scEnabled","scPath")        
-    settingsCreateOptions("Forged Alliance",userinfo["scfaPath"] ,"scfaEnabled","scfaPath")
-    settingsCreateOptions("Forged Alliance Forever",userinfo["fafPath"],"fafEnabled","fafPath")
-    settingsCreateOptions("Downlord's FAF Client",userinfo["downlordClientPath"] ,"downlordClientEnabled","downlordClientPath")
-    settingsCreateOptions("LOUD Forged Alliance",userinfo["loudPath"] ,"loudEnabled","loudPath")
-    settingsCreateOptions("FAF Map Editor",userinfo["mapedirorscPath"] ,"mapeditorEnabled","mapedirorscPath")
-    settingsCreateOptions("Supreme Commander 2 (Steam)",userinfo["sc2SteamPath"] ,"sc2SteamEnabled","sc2SteamPath")   
-    settingsCreateOptions("Supreme Commander 2",userinfo["sc2Path"] ,"sc2Enabled","sc2Path")   
-    settingsCreateOptions("Planetary Annihilation (Steam)",userinfo["paSteamPath"] ,"paSteamEnabled","paSteamPath")
-    settingsCreateOptions("Total Annihilation Forever",userinfo["taforeverPath"] ,"taforeverEnabled","taforeverPath")
-    settingsCreateOptions("Total Annihilation (Steam)",userinfo["taSteamPath"] ,"taSteamEnabled","taSteamPath")
-    settingsCreateOptions("Total Annihilation",userinfo["taPath"] ,"taEnabled","taPath")
-    settingsCreateOptions("Total Annihilation Escalation",userinfo["taEscalationPath"] ,"taEscalationEnabled","taEscalationPath")
-    settingsCreateOptions("Total Annihilation Mayhem",userinfo["taMayhemPath"] ,"taMayhemEnabled","taMayhemPath")
-    settingsCreateOptions("Total Annihilation ProTA",userinfo["taProTAPath"] ,"taProTAEnabled","taProTAPath")
-    settingsCreateOptions("Total Annihilation Twilight",userinfo["taTwilightPath"] ,"taTwilightEnabled","taTwilightPath")
-    settingsCreateOptions("Total Annihilation Zero",userinfo["taZeroPath"] ,"taZeroEnabled","taZeroPath")
-    settingsCreateOptions("Beyond All Reason",userinfo["barPath"] ,"barEnabled","barPath")
-    settingsCreateOptions("Zero-K (Steam)",userinfo["ZerokPath"] ,"ZerokEnabled","ZerokPath")
-
-    #Create checkboxes
-    def def_settings_CheckBox(iniData,checkboxText):
-        def checkboxButtonClick():
-            #check if the checkbox is enabled
-            if checkboxValue.get() == 1:
-                userinfo[iniData] = "1" #set ini data
-            if checkboxValue.get() == 0:
-                userinfo[iniData] = "0" #set ini data
-            #save data
-            with open('./config/config.ini', 'w') as conf:
-                userData.write(conf)  
-
-        checkboxValue = IntVar() #var for checkboxButton variable
-        #Create a new checkbox Button
-        checkboxButton = Checkbutton(settingsWindow,bd=10, text=checkboxText,activebackground="#1A1A1A",activeforeground ="#FFF",bg="#1A1A1A",
-            fg="#FFF",selectcolor="#000", variable=checkboxValue, onvalue=1, offvalue=0, command=checkboxButtonClick,font =("Lato", 9))
-
-        checkboxButton.pack()#Add the checkbox
-        #check ini data for checkbox status
-        if userinfo[iniData] == "1":
-            checkboxButton.select() #Select the check box if user saved data is checked
-
-    #Create the Checkboxes 
-    def_settings_CheckBox("lockCursorEnabled","Lock cursor to active window when in windowed mode (Supported Games: SC,FA,FAF,LOUD)")
-    def_settings_CheckBox("autoSetMonitorEnabled","Auto set game window size when in windowed mode (Supported Games: SC,FA,FAF,LOUD)")
-    def_settings_CheckBox("autoSetDualScreenEnabled","Enable auto dual screen switcher (Experimental, needs Common Mod Tools and ui-party enabled, only for FA,FAF,LOUD)")
-
-    hotkey1 = Label(settingsWindow,bd= 10,bg="#1A1A1A",fg="#FFF", text = "Ctrl F12 (Switches to dual screen mode)") #Create a new label
-    hotkey1.config(font =("Orbitron", 10)) #Set label font
-    hotkey1.pack(side = TOP) #Add the label
-    hotkey2 = Label(settingsWindow,bd= 10,bg="#1A1A1A",fg="#FFF", text = "Ctrl F11 (Switches to single screen mode)") #Create a new label
-    hotkey2.config(font =("Orbitron", 10)) #Set label font
-    hotkey2.pack(side = TOP) #Add the label
-    hotkey3 = Label(settingsWindow,bd= 10,bg="#1A1A1A",fg="#FFF", text = "Ctrl F10 (End the ahk script)") #Create a new label
-    hotkey3.config(font =("Orbitron", 10)) #Set label font
-    hotkey3.pack(side = TOP) #Add the label
-    Note = Label(settingsWindow,bd= 10,bg="#1A1A1A",fg="#FFF", text = "For windowed dual screen mode install Common Mod Tools Mod and ui-party mod then enabled ui-party in \n \
-        the mod menu. Within each game set the primary adapter to windowed and disable the secondary adapter. \n \
-        (Supported Games: FA,FAF,LOUD)") #Create a new label
-    Note.config(font =("Lato", 10)) #Set label font
-    Note.pack(side = TOP) #Add the label
-
-    #Apply button
-    def applyCall():
-        #Save the user data to the ini
-        global gameLinkArray
-        #Save the game path data to the config file
-        userinfo["scSteamPath"] = gameLinkArray[0].get()
-        userinfo["scfaSteamPath"] = gameLinkArray[1].get()
-        userinfo["scPath"] = gameLinkArray[2].get()
-        userinfo["scfaPath"] = gameLinkArray[3].get()
-        userinfo["fafPath"] = gameLinkArray[4].get()
-        userinfo["downlordClientPath"] = gameLinkArray[5].get()
-        userinfo["loudPath"] = gameLinkArray[6].get()
-        userinfo["mapedirorscPath"] = gameLinkArray[7].get()
-        userinfo["sc2SteamPath"] = gameLinkArray[8].get()
-        userinfo["sc2Path"] = gameLinkArray[9].get()
-        userinfo["paSteamPath"] = gameLinkArray[10].get()
-        userinfo["taforeverPath"] = gameLinkArray[11].get()
-        userinfo["taSteamPath"] = gameLinkArray[12].get()
-        userinfo["taPath"] = gameLinkArray[13].get()
-        userinfo["taEscalationPath"] = gameLinkArray[14].get()
-        userinfo["taMayhemPath"] = gameLinkArray[15].get()
-        userinfo["taProTAPath"] = gameLinkArray[16].get()
-        userinfo["taTwilightPath"] = gameLinkArray[17].get()
-        userinfo["taZeroPath"] = gameLinkArray[18].get()
-        userinfo["barPath"] = gameLinkArray[19].get()
-        userinfo["ZerokPath"] = gameLinkArray[20].get()
-        #Open ini and write to it
-        with open('./config/config.ini', 'w') as conf:
-            userData.write(conf)
-        createInterface() #Recreate the window interface
-        settingsWindow.destroy() #close the settings window
-    #Add the apply button to the setting menu    
-    applyButton = Button(settingsWindow, text = "Apply", width = 10, command = applyCall)
-    applyButton.pack()
-
-#About interface
-def def_about():
-    #Create a simple about page
-    aboutWindow = Toplevel()
-    aboutWindow.title("About")
-    aboutWindow['background']='#1A1A1A'
-    aboutWindow.wait_visibility()
-    aboutWindow.grab_set()
-    aboutWindow.resizable(False, False) 
-    w = 700
-    h = 583 
-    x = (w/1.2)
-    y = (h/4)
-    aboutWindow.geometry('%dx%d+%d+%d' % (w, h, x, y)) #set window size and location
-    aboutWindow['background']='#1A1A1A' #Set background color
-
-    aboutlabel = Label(aboutWindow,bg="#1A1A1A",fg="#FFF", text = launcherName + " - " + version)
-    aboutlabel.config(font =("Orbitron", 10))
-    aboutlabel.place(x=0, y=0)
-    aboutlabel.pack(side = TOP)
-
-    aboutlabel = Label(aboutWindow,bg="#1A1A1A",fg="#FFF", text = "Supreme Commander Definitive Windowed Borderless Script - " + scriptVersion)
-    aboutlabel.config(font =("Orbitron", 10))
-    aboutlabel.place(x=0, y=0)
-    aboutlabel.pack(side = TOP)
-
-    aboutlabel = Label(aboutWindow,bg="#1A1A1A",fg="#FFF", text = "Created by \n ageekhere \n 2021")
-    aboutlabel.config(font =("Orbitron", 10))
-    aboutlabel.place(x=0, y=0)
-    aboutlabel.pack(side = TOP)
-
-    aboutlabel = Label(aboutWindow, bg="#1A1A1A",fg="#FFF", text = "\n Supported Games \n \n \
-        Supreme Commander \n \
-        Forged Alliance \n \
-        Supreme Commander(Steam) \n \
-        Forged Alliance(Steam) \n \
-        Forged Alliance Forever \n \
-        Downlord's FAF Client \n \
-        Forged Alliance LOUD \n \
-        FAF Map Editor \n \
-        Supreme Commander 2 \n \
-        Planetary Annihilation(Steam) \n \
-        Total Annihilation \n \
-        Total Annihilation Forever \n \
-        Total Annihilation Escalation \n \
-        Total Annihilation Mayhem \n \
-        Total Annihilation ProTA \n \
-        Total Annihilation Twilight \n \
-        Total Annihilation Zero \n \
-        Zero-K(Steam) \n \
-        Beyond All Reason \n ")
-    aboutlabel.config(font =("Lato", 10))
-    aboutlabel.place(x=0, y=0)
-    aboutlabel.pack(side = LEFT)
-
-#File menu for main window
-file_menu= Menu(my_menu,tearoff="off") #Disable tearoff
-my_menu.add_cascade(label="File", menu=file_menu) #Add file menu
-file_menu.add_command(label="Settings",command=def_settings) #Add settings menu
-file_menu.add_command(label="About",command=def_about) #Add about menu
-file_menu.add_command(label="Exit",command=window.quit) #Add exit
- 
-window.mainloop()
+gMainWindow.mainloop()
