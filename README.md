@@ -6,7 +6,7 @@
 What began as a script to improve the optimisation of windowed mode for Forged Alliance escalated into a Launcher which sought to unify the genre. The Python script and the Autohotkey script have all but exhausted their API’s resources in order to construct the library manager. 
 The interface, now fully operating beyond what was initially designed begins its journey to assimilate the corresponding RTS franchises. This is the Definitive Supreme Commander Launcher. For this project the only acceptable outcome is the complete amalgamation of the Chris Taylor RTS assemblage.
 
-![Launcher](https://user-images.githubusercontent.com/13173133/138063681-27963ca0-00b7-4aa0-aa85-9cad1f88be1f.png)
+![Launcher](https://github.com/ageekhere/Definitive-Supreme-Commander-Launcher/assets/13173133/162ee5a7-e7cc-4849-8560-c69cb18cbe14)
 
 
 Supported games
