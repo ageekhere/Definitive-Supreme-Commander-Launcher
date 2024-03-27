@@ -29,6 +29,7 @@ Supported games
 - Total Annihilation ProTA
 - Total Annihilation Twilight
 - Total Annihilation Zero
+- Total Annihilation Absolute Annihilation
 - Zero-K
 -Beyond All Reason
 
