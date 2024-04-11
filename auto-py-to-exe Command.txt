@@ -1,0 +1,1 @@
+pyinstaller --noconfirm --onefile --console --icon "path_to_ico/dscl_icon.ico" --splash "initive Launcher/path_to_splashscreen/splashscreen.png" --version-file "path_to_txt/version_info.txt"  "path_to_pyw/Definitive Supreme Commander Launcher.pyw"

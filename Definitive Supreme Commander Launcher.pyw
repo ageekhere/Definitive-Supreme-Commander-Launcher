@@ -23,6 +23,7 @@ from PIL import ImageTk, Image
 from tkinter import ttk
 from tkinter.filedialog import askopenfilename
 import subprocess
+
 def read_wright_config(pOption: str # r = read, w = wright
     ) -> None:
     # Read for write to the config file
@@ -64,7 +65,7 @@ def gameClick(pGameName:str, pGamePath:str, pGameType:str, pExeName):
     if pGameType != "steam": # Check for steam game
         startGame(pGamePath,pGameName) # call startGame to load the game
     else: # Is a steam game
-        subCall.Popen(["scripts/AutoHotkeyU32.exe", "scripts/main.ahk",pGameName,pGamePath,
+        subCall.Popen(["content/scripts/AutoHotkeyU32.exe", "content/scripts/main.ahk",pGameName,pGamePath,
         gUserinfo["lockCursorEnabled"],gUserinfo["autoSetMonitorEnabled"],gUserinfo["autoSetDualScreenEnabled"],pExeName,gUserinfo["minimizeallEnabled"],gUserinfo["dualScreenDefaultEnabled"] ]) # load steam game via steam
 
 def startGame(pPath:str, pName:str) -> None:
@@ -72,7 +73,7 @@ def startGame(pPath:str, pName:str) -> None:
     pGameLocation = r'%s' %pPath
     pGameExe = pGameLocation.split('\\')[-1]
     pFixedGameLocation = pGameLocation.replace(pGameExe, "", 1)
-    subCall.Popen(["scripts/AutoHotkeyU32.exe", "scripts/main.ahk",pName,pFixedGameLocation,
+    subCall.Popen(["content/scripts/AutoHotkeyU32.exe", "content/scripts/main.ahk",pName,pFixedGameLocation,
     gUserinfo["lockCursorEnabled"],gUserinfo["autoSetMonitorEnabled"],gUserinfo["autoSetDualScreenEnabled"],pGameExe, gUserinfo["minimizeallEnabled"],gUserinfo["dualScreenDefaultEnabled"] ])
 
 def optionmenu_callback(choice) -> None:
@@ -138,28 +139,28 @@ def createInterface() -> None:
     for widget in gHomeScrollable_frame.winfo_children():
         widget.destroy()
     # Add images to interface,interfaceCreateGameButton(string image location, function click, string name, string enabled)
-    interfaceCreateGameButton(r"data\absoluteAnnihilation.png",gameClick,"Absolute Annihilation","absoluteAnnEnabled","absoluteAnn", gUserinfo["absoluteAnnPath"],"na","na") # Absolute Annihilation
-    interfaceCreateGameButton(r"data\bar.png",gameClick,"Beyond All Reason","barEnabled","bar", gUserinfo["barPath"],"na","na") # Beyond All Reason
-    interfaceCreateGameButton(r"data\client.png",gameClick,"Downlord's FAF Client","downlordClientEnabled","client", gUserinfo["downlordClientPath"],"na","na") # Downlord's FAF Client
-    interfaceCreateGameButton(r"data\escalation.png",gameClick,"Total Annihilation Escalation","taEscalationEnabled","taEscalation", gUserinfo["taEscalationPath"],"na","na") # Total Annihilation Escalation
-    interfaceCreateGameButton(r"data\imagefaf.png",gameClick,"Forged Alliance Forever","fafEnabled","faf", gUserinfo["fafPath"],"na","na") # Supreme Commander Forged Alliance Forever
-    interfaceCreateGameButton(r"data\loud.png",gameClick,"Forged Alliance LOUD","loudEnabled","loud", gUserinfo["loudPath"],"na","na") # Supreme Commander Forged Alliance LOUD
-    interfaceCreateGameButton(r"data\mapeditor.png",gameClick,"FAF Map Editor","mapeditorEnabled","mapeditor", gUserinfo["mapedirorscPath"],"na","na") # FAF Map Editor
-    interfaceCreateGameButton(r"data\prota.png",gameClick,"Total Annihilation ProTA","taProTAEnabled","taPro", gUserinfo["taProTAPath"],"na","na") # Total Annihilation ProTA
-    interfaceCreateGameButton(r"data\sc.png",gameClick,"Supreme Commander","scEnabled","sc", gUserinfo["scPath"],"na","na") # Supreme Commander
-    interfaceCreateGameButton(r"data\sc2.png",gameClick,"Supreme Commander 2","sc2Enabled","sc2", gUserinfo["sc2Path"],"na","na") # Supreme Commander 2
-    interfaceCreateGameButton(r"data\scfa.png",gameClick,"Forged Alliance","scfaEnabled","fa", gUserinfo["scfaPath"],"na","na") # Supreme Commander Forged Alliance
-    interfaceCreateGameButton(r"data\tamayhem.png",gameClick,"Total Annihilation Mayhem","taMayhemEnabled","taMay", gUserinfo["taMayhemPath"],"na","na") # Total Annihilation Mayhem
-    interfaceCreateGameButton(r"data\ta.png",gameClick,"Total Annihilation","taEnabled","ta", gUserinfo["taPath"],"na","na") # Total Annihilation
-    interfaceCreateGameButton(r"data\twilight.png",gameClick,"Total Annihilation Twilight","taTwilightEnabled","taTwilight", gUserinfo["taTwilightPath"],"na","na") # Total Annihilation Twilight
-    interfaceCreateGameButton(r"data\taZero.png",gameClick,"Total Annihilation Zero","taZeroEnabled","taZero", gUserinfo["taZeroPath"],"na","na") # Total Annihilation Zero
-    interfaceCreateGameButton(r"data\client_taforever.png" ,gameClick,"Total Annihilation Forever","taforeverEnabled","taforever", gUserinfo["taforeverPath"],"na","na") # Total Annihilation Forever
-    interfaceCreateGameButton(r"data\taSteam.png",gameClick,"Total Annihilation Steam","taSteamEnabled","taSteam", gUserinfo["taSteamPath"],"steam","TotalA.exe") # Total Annihilation (Steam)
-    interfaceCreateGameButton(r"data\scSteam.png",gameClick,"Supreme Commander Steam","scSteamEnabled","steamSC", gUserinfo["scSteamPath"],"steam","SupremeCommander.exe") # Supreme Commander(Steam)
-    interfaceCreateGameButton(r"data\scfaSteam.png",gameClick,"Forged Alliance Steam","scfaSteamEnabled","steamFAF", gUserinfo["scSteamPath"],"steam","SupremeCommander.exe") # Supreme Commander Forged Alliance(Steam)
-    interfaceCreateGameButton(r"data\sc2Steam.png",gameClick,"Supreme Commander 2 Steam","sc2SteamEnabled","sc2Steam", gUserinfo["sc2SteamPath"],"steam","SupremeCommander2.exe") # Supreme Commander 2 Steam
-    interfaceCreateGameButton(r"data\paSteam.png",gameClick,"Planetary Annihilation Steam","paSteamEnabled","paSteam", gUserinfo["paSteamPath"],"steam","PA.exe") # Planetary Annihilation (Steam)
-    interfaceCreateGameButton(r"data\zerok.png",gameClick,"Zero-K Steam","ZerokEnabled","ZeroK", gUserinfo["ZerokPath"],"steam","Zero-K.exe") # Zero-K (Steam)
+    interfaceCreateGameButton(r"content\data\absoluteAnnihilation.png",gameClick,"Absolute Annihilation","absoluteAnnEnabled","absoluteAnn", gUserinfo["absoluteAnnPath"],"na","na") # Absolute Annihilation
+    interfaceCreateGameButton(r"content\data\bar.png",gameClick,"Beyond All Reason","barEnabled","bar", gUserinfo["barPath"],"na","na") # Beyond All Reason
+    interfaceCreateGameButton(r"content\data\client.png",gameClick,"Forged Alliance Forever Client","fafClientEnabled","client", gUserinfo["fafClientPath"],"na","na") # FAF Client
+    interfaceCreateGameButton(r"content\data\escalation.png",gameClick,"Total Annihilation Escalation","taEscalationEnabled","taEscalation", gUserinfo["taEscalationPath"],"na","na") # Total Annihilation Escalation
+    interfaceCreateGameButton(r"content\data\imagefaf.png",gameClick,"Offline Forged Alliance Forever","fafEnabled","faf", gUserinfo["fafPath"],"na","na") # Supreme Commander Forged Alliance Forever
+    interfaceCreateGameButton(r"content\data\loud.png",gameClick,"Forged Alliance LOUD","loudEnabled","loud", gUserinfo["loudPath"],"na","na") # Supreme Commander Forged Alliance LOUD
+    interfaceCreateGameButton(r"content\data\mapeditor.png",gameClick,"FAF Map Editor","mapeditorEnabled","mapeditor", gUserinfo["mapedirorscPath"],"na","na") # FAF Map Editor
+    interfaceCreateGameButton(r"content\data\prota.png",gameClick,"Total Annihilation ProTA","taProTAEnabled","taPro", gUserinfo["taProTAPath"],"na","na") # Total Annihilation ProTA
+    interfaceCreateGameButton(r"content\data\sc.png",gameClick,"Supreme Commander","scEnabled","sc", gUserinfo["scPath"],"na","na") # Supreme Commander
+    interfaceCreateGameButton(r"content\data\sc2.png",gameClick,"Supreme Commander 2","sc2Enabled","sc2", gUserinfo["sc2Path"],"na","na") # Supreme Commander 2
+    interfaceCreateGameButton(r"content\data\scfa.png",gameClick,"Forged Alliance","scfaEnabled","fa", gUserinfo["scfaPath"],"na","na") # Supreme Commander Forged Alliance
+    interfaceCreateGameButton(r"content\data\tamayhem.png",gameClick,"Total Annihilation Mayhem","taMayhemEnabled","taMay", gUserinfo["taMayhemPath"],"na","na") # Total Annihilation Mayhem
+    interfaceCreateGameButton(r"content\data\ta.png",gameClick,"Total Annihilation","taEnabled","ta", gUserinfo["taPath"],"na","na") # Total Annihilation
+    interfaceCreateGameButton(r"content\data\twilight.png",gameClick,"Total Annihilation Twilight","taTwilightEnabled","taTwilight", gUserinfo["taTwilightPath"],"na","na") # Total Annihilation Twilight
+    interfaceCreateGameButton(r"content\data\taZero.png",gameClick,"Total Annihilation Zero","taZeroEnabled","taZero", gUserinfo["taZeroPath"],"na","na") # Total Annihilation Zero
+    interfaceCreateGameButton(r"content\data\client_taforever.png" ,gameClick,"Total Annihilation Forever","taforeverEnabled","taforever", gUserinfo["taforeverPath"],"na","na") # Total Annihilation Forever
+    interfaceCreateGameButton(r"content\data\taSteam.png",gameClick,"Total Annihilation Steam","taSteamEnabled","taSteam", gUserinfo["taSteamPath"],"steam","TotalA.exe") # Total Annihilation (Steam)
+    interfaceCreateGameButton(r"content\data\scSteam.png",gameClick,"Supreme Commander Steam","scSteamEnabled","steamSC", gUserinfo["scSteamPath"],"steam","SupremeCommander.exe") # Supreme Commander(Steam)
+    interfaceCreateGameButton(r"content\data\scfaSteam.png",gameClick,"Forged Alliance Steam","scfaSteamEnabled","steamFAF", gUserinfo["scSteamPath"],"steam","SupremeCommander.exe") # Supreme Commander Forged Alliance(Steam)
+    interfaceCreateGameButton(r"content\data\sc2Steam.png",gameClick,"Supreme Commander 2 Steam","sc2SteamEnabled","sc2Steam", gUserinfo["sc2SteamPath"],"steam","SupremeCommander2.exe") # Supreme Commander 2 Steam
+    interfaceCreateGameButton(r"content\data\paSteam.png",gameClick,"Planetary Annihilation Steam","paSteamEnabled","paSteam", gUserinfo["paSteamPath"],"steam","PA.exe") # Planetary Annihilation (Steam)
+    interfaceCreateGameButton(r"content\data\zerok.png",gameClick,"Zero-K Steam","ZerokEnabled","ZeroK", gUserinfo["ZerokPath"],"steam","Zero-K.exe") # Zero-K (Steam)
     
 #File settings window
 def def_settings() -> None:
@@ -240,7 +241,7 @@ def def_settings() -> None:
         gUserinfo["scPath"] = pGameLinkArray[2].get()
         gUserinfo["scfaPath"] = pGameLinkArray[3].get()
         gUserinfo["fafPath"] = pGameLinkArray[4].get()
-        gUserinfo["downlordClientPath"] = pGameLinkArray[5].get()
+        gUserinfo["fafClientPath"] = pGameLinkArray[5].get()
         gUserinfo["loudPath"] = pGameLinkArray[6].get()
         gUserinfo["mapedirorscPath"] = pGameLinkArray[7].get()
         gUserinfo["sc2SteamPath"] = pGameLinkArray[8].get()
@@ -291,7 +292,7 @@ def def_settings() -> None:
     settingsCreateOptions("Supreme Commander",gUserinfo["scPath"] ,"scEnabled","scPath")        
     settingsCreateOptions("Forged Alliance",gUserinfo["scfaPath"] ,"scfaEnabled","scfaPath")
     settingsCreateOptions("Forged Alliance Forever",gUserinfo["fafPath"],"fafEnabled","fafPath")
-    settingsCreateOptions("Downlord's FAF Client",gUserinfo["downlordClientPath"] ,"downlordClientEnabled","downlordClientPath")
+    settingsCreateOptions("Forged Alliance Forever Client",gUserinfo["fafClientPath"] ,"fafClientEnabled","fafClientPath")
     settingsCreateOptions("LOUD Forged Alliance",gUserinfo["loudPath"] ,"loudEnabled","loudPath")
     settingsCreateOptions("FAF Map Editor",gUserinfo["mapedirorscPath"] ,"mapeditorEnabled","mapedirorscPath")
     settingsCreateOptions("Supreme Commander 2 (Steam)",gUserinfo["sc2SteamPath"] ,"sc2SteamEnabled","sc2SteamPath")   
@@ -347,7 +348,7 @@ def def_about() -> None:
     pGameListLabel = create_Label(pAboutWindow, "\n\
         Supported Games \n \n\
         Absolute Annihilation \n\
-        Downlord's FAF Client \n\
+        Forged Alliance Forever Client \n\
         FAF Map Editor \n\
         Forged Alliance \n\
         Forged Alliance Forever \n\
@@ -366,14 +367,21 @@ def def_about() -> None:
         Total Annihilation Zero \n\
         Zero-K(Steam)", ("Orbitron", 14), LEFT,"left","center")
 
+
+if getattr(sys, 'frozen', False):
+    import pyi_splash
+
+if getattr(sys, 'frozen', False):
+    pyi_splash.close()
+
 #global variables
 gLauncherName = "Definitive Supreme Commander Launcher" # App name
-gPythonVersion = "3.12.2" # Python version app is using
-gVersion = "1.04" # App version
-gGitVersionName ="version1.04" # Current app git version name
-gScriptVersion = "1.11" # Version of autohotkey script
-gConfigPath = Path("./config/config.ini") # Relative path to INI file
-gIconPath = "icon/dscl_icon.ico" # Icon path
+gPythonVersion = "3.12.3" # Python version app is using
+gVersion = "1.0.5.0" # App version
+gGitVersionName ="version1.05" # Current app git version name
+gScriptVersion = "1.12" # Version of autohotkey script
+gConfigPath = Path("content/config/config.ini") # Relative path to INI file
+gIconPath = "content/icon/dscl_icon.ico" # Icon path
 gUserData = ConfigParser() # New ConfigParser to reference an INI file
 gInterfaceRow = 0 # Row grid layout of the main interface
 gInterfaceCol = 0 # Col grid layout of the main interface
@@ -394,8 +402,8 @@ else: # Set the defaults of the INI file if the file does not exists and create 
     "scfaPath": r"C:\ForgedAlliance.exe",
     "fafEnabled": "0",
     "fafPath": r"C:\ProgramData\FAForever\bin\ForgedAlliance.exe",
-    "downlordClientEnabled": "0",
-    "downlordClientPath": r"C:\Downlord's FAF Client\downlords-faf-client.exe",
+    "fafClientEnabled": "0",
+    "fafClientPath": r"C:\faf-client.exe",
     "loudEnabled": "0",
     "loudPath": r"C:\LOUD\SCFA_Updater.exe",
     "mapeditorEnabled": "0",
@@ -407,7 +415,7 @@ else: # Set the defaults of the INI file if the file does not exists and create 
     "sc2Enabled":"0",
     "sc2Path": r"C:\SupremeCommander2.exe",
     "taforeverEnabled":"0", 
-    "taforeverPath": r"C:\Downlord's TAF Client\downlords-taf-client",
+    "taforeverPath": r"C:\taf-java-client",
     "taSteamEnabled":"0",
     "taSteamPath":r"steam://rungameid/298030",
     "taEnabled":"0",
@@ -504,7 +512,7 @@ read_wright_config("r") # Read updated config
 gMainWindowCanvas = Canvas(gMainWindow) # Main canvas 
 pHomeContainer = customtkinter.CTkFrame(master=gMainWindowCanvas) # New frame
 gHomeCanvas = Canvas(pHomeContainer,width= gMainWindowWidth-22,height=gMainWindowHeight,bg="#2B2B2B",highlightthickness=0,bd=0) #New Canvas
-pHomeScrollbar = customtkinter.CTkScrollbar(pHomeContainer, command=gHomeCanvas.yview) # Scroll bar for pHomeContainer 
+pHomeScrollbar = customtkinter.CTkScrollbar(pHomeContainer, command=gHomeCanvas.yview) # Scroll bar for pHomeContainer
 gHomeScrollable_frame = customtkinter.CTkFrame(master=gHomeCanvas) #Scrollable frame for gHomeCanvas 
 gHomeScrollable_frame.bind("<Configure>",lambda e: gHomeCanvas.configure(scrollregion=gHomeCanvas.bbox("all"))) #Scrollable frame for bind gHomeCanvas 
 gHomeCanvas.create_window((0, 0), window=gHomeScrollable_frame, anchor="nw") # New window

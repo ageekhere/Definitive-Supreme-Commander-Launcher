@@ -1,6 +1,6 @@
 ;//Supreme Commander Definitive Windowed Borderless Script
 ;//ageekhere, tatsu, IO_Nox other sources on the net
-;//1.11
+;//1.12
 
 ;//Supports 
 ;//dual Monitors of the same resolution
@@ -8,7 +8,7 @@
 ;//Supreme Commander steam version
 ;//Supreme Commander Forged Alliance steam version
 ;//Forged Alliance Forever 
-;//Downlord's FAF Client
+;//FAF Client
 ;//LOUD
 
 ;//limitations
@@ -53,7 +53,7 @@ global gDualScreenActive := gStartInDualScreenMode ;//(do not change)
 EnvGet, gProcessorCount, NUMBER_OF_PROCESSORS ;//Set the number of processor threads to use, by default it will find auto find the max supported processors
 
 if(gAutoSetDualScreenArg = 1)
-{ ;//Only support FA, FAF,downlord client and loud for auto dual screen 
+{ ;//Only support FA, FAF, FAF client and loud for auto dual screen 
 	if(A_Args[1] == "fa" || A_Args[1] =="faf" || A_Args[1] == "client" ||  A_Args[1] == "loud")
 	{
 		gEnableAutoDualScreen := true 
@@ -93,7 +93,7 @@ else
 	gResolutionHeight := 1080  ;1440, 2160 ;//Sets the height resolution
 }
 if(gGameName = "client")
-	{ ;//Run the Downlord's FAF Client
+	{ ;//Run the FAF Client
 		gSelectedGame := "ForgedAlliance.exe"
 		gSelectedGameExe := gameExe
 		gSelectedGameDir := gGameDir
@@ -307,7 +307,6 @@ resize(x, y, gametype, active)
 ^F11::resize(gResolutionWidth, gResolutionHeight,gSelectedGame,false) ;//Ctrl F11 to enter single screen mode
 ^F10::quit() ;//Ctrl F10 to stop the script
 
-
 ;//Resize the game on start up,
 CheckProc:
 	if (!ProcessExist(gSelectedGame)) 
@@ -367,9 +366,6 @@ CheckProc:
 }
 return
 
-
-
-
 clipProc: 
 	if (!ProcessExist(gSelectedGame) || !WinActive("ahk_exe " gSelectedGame)) ;//checks if the game window is active
 		return
@@ -399,12 +395,6 @@ ClipCursor(Confine=True, x1=0, y1=0, x2=1, y2=1)
 	return Confine ? DllCall("ClipCursor", UInt, &R) : DllCall("ClipCursor")
   }
 
-
-
-  ;image1Data := FileRead("path/to/image1.jpg")
-  ;image2Data := FileRead("path/to/image2.jpg")
-  ;images := {"image1": image1Data, "image2": image2Data}
-
 loadingSearch:
 	if(gLoadingSearchDelayCount < 500)
 	{ ;//A 5 second delay 
@@ -421,10 +411,6 @@ loadingSearch:
 		}
 		return
 	}
-
-	;PixelGetColor, color, 0, 0
-	;MsgBox The color at the current cursor position is %color%.
-
 	if(gDualScreenActive = true || !gGameLoadCheck || !WinActive("ahk_exe " gSelectedGame))
 		return
 
@@ -442,18 +428,6 @@ loadingSearch:
 	}
 return
 
-
-MsgBox, hBitmap: %time1% ms`nImageSearch: %time2% ms
-
-if ErrorLevel = 2
-    MsgBox Could not conduct the search.
-else if ErrorLevel = 1
-    MsgBox Icon could not be found on the screen.
-else
-    MsgBox The icon was found at %FoundX%x%FoundY%.
-return
-
-
 ; //Check to see if the game has ended are the users in at the stats menu, working for FAF and LOUD 
 endGameSearch:
 	if (!ProcessExist(gSelectedGame)) 
@@ -466,23 +440,23 @@ endGameSearch:
 		}
 		return
 	}
-	
+
 	;//return if not in dual screen mode
 	if(gDualScreenActive = false || !WinActive("ahk_exe " gSelectedGame) || !gGameLoadCheck)
 		return
 	
 	loop, %A_ScriptDir%\pics\endgame\*.*
 	{ ;//Loop through all the images in endgame
-	  CoordMode Pixel,Relative
-	  ImageSearch, FoundX, FoundY, gResolutionWidth, gResolutionHeight, gResolutionWidth*2, gResolutionHeight, *80, %A_LoopFileFullPath% ;
-	  if (ErrorLevel = 0)
-	  {
-		resize(gResolutionWidth, gResolutionHeight,gSelectedGame,false)
-		settimer, endGameSearch, OFF
-		settimer, loadingSearch, ON
-		break
-	  }
-	 }
+		CoordMode Pixel,Relative
+		ImageSearch, FoundX, FoundY, 0, 0, gResolutionWidth*2, gResolutionHeight, *80, %A_LoopFileFullPath% ;
+		if (ErrorLevel = 0)
+		{
+			resize(gResolutionWidth, gResolutionHeight,gSelectedGame,false)
+			settimer, endGameSearch, OFF
+			settimer, loadingSearch, ON
+			break
+		}
+	}
 return
 
 ;//Check if the process exist
