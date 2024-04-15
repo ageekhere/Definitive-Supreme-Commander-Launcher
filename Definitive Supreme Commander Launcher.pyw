@@ -1,7 +1,7 @@
 """
 Install the following for python
 pip3 install customtkinter
-python -m pip install requests
+python -m pip install requests or pip install requests
 pip install pillow
 """
 import configparser
@@ -157,7 +157,7 @@ def createInterface() -> None:
     interfaceCreateGameButton(r"content\data\client_taforever.png" ,gameClick,"Total Annihilation Forever","taforeverEnabled","taforever", gUserinfo["taforeverPath"],"na","na") # Total Annihilation Forever
     interfaceCreateGameButton(r"content\data\taSteam.png",gameClick,"Total Annihilation Steam","taSteamEnabled","taSteam", gUserinfo["taSteamPath"],"steam","TotalA.exe") # Total Annihilation (Steam)
     interfaceCreateGameButton(r"content\data\scSteam.png",gameClick,"Supreme Commander Steam","scSteamEnabled","steamSC", gUserinfo["scSteamPath"],"steam","SupremeCommander.exe") # Supreme Commander(Steam)
-    interfaceCreateGameButton(r"content\data\scfaSteam.png",gameClick,"Forged Alliance Steam","scfaSteamEnabled","steamFAF", gUserinfo["scSteamPath"],"steam","SupremeCommander.exe") # Supreme Commander Forged Alliance(Steam)
+    interfaceCreateGameButton(r"content\data\scfaSteam.png",gameClick,"Forged Alliance Steam","scfaSteamEnabled","steamFAF", gUserinfo["scfaSteamPath"],"steam","ForgedAlliance.exe") # Supreme Commander Forged Alliance(Steam)
     interfaceCreateGameButton(r"content\data\sc2Steam.png",gameClick,"Supreme Commander 2 Steam","sc2SteamEnabled","sc2Steam", gUserinfo["sc2SteamPath"],"steam","SupremeCommander2.exe") # Supreme Commander 2 Steam
     interfaceCreateGameButton(r"content\data\paSteam.png",gameClick,"Planetary Annihilation Steam","paSteamEnabled","paSteam", gUserinfo["paSteamPath"],"steam","PA.exe") # Planetary Annihilation (Steam)
     interfaceCreateGameButton(r"content\data\zerok.png",gameClick,"Zero-K Steam","ZerokEnabled","ZeroK", gUserinfo["ZerokPath"],"steam","Zero-K.exe") # Zero-K (Steam)
@@ -266,15 +266,18 @@ def def_settings() -> None:
     pLockedGamePaths = ["scSteamEnabled", "sc2SteamEnabled", "scfaSteamEnabled","paSteamEnabled", "taSteamEnabled", "ZerokEnabled"] # List of Locked games with paths
     pGameLinkArray = [] # Array to hold all the game urls 
     pWindowWidth = 810
-    pWindowHeight = 768
+    pWindowHeight = 680
     pSettingsWindow = customtkinter.CTkToplevel(gMainWindow) #Use customtkinter for the style of the toplevel window
     pSettingsWindow.title("Settings") # Set the Window title name
     pSettingsWindow.after(200, lambda: pSettingsWindow.iconbitmap(gIconPath))
     pSettingsWindow.grab_set() # Makes the window modal (blocks interaction with the main window)
     pSettingsWindow.resizable(False, False) # Disables window resizing 
-    pSettingsWindow.geometry('%dx%d+%d+%d' % (pWindowWidth, pWindowHeight, (pWindowWidth / 1.5), (pWindowHeight / 6))) #set window size and location
+    pSettingsWindowX = (gWinfo_screenwidth - pWindowWidth) // 2
+    pSettingsWindowY = (gWinfo_screenheight - pWindowHeight) // 6
+    pSettingsWindow.geometry(f"{pWindowWidth}x{pWindowHeight}+{pSettingsWindowX}+{pSettingsWindowY}")
+
     pSettingsFrame = customtkinter.CTkFrame(master=pSettingsWindow, border_width=0) # Create frame
-    pSettingsCanvas = Canvas(pSettingsFrame,bd=0, width= pWindowWidth-40, height=380, bg="#2B2B2B", highlightthickness=0) # Create canvas for frame
+    pSettingsCanvas = Canvas(pSettingsFrame,bd=0, width= pWindowWidth-40, height=292, bg="#2B2B2B", highlightthickness=0) # Create canvas for frame
     pSettingsFrameScrollbar = customtkinter.CTkScrollbar(pSettingsFrame, command=pSettingsCanvas.yview) # Create Scrollbar for canvas
     pSettingsScrollFrame = customtkinter.CTkFrame(master=pSettingsCanvas) # Create 
     pSettingsScrollFrame.bind("<Configure>", lambda e: pSettingsCanvas.configure(scrollregion=pSettingsCanvas.bbox("all"))) # bind pSettingsScrollFrame to pSettingsCanvas 
@@ -336,7 +339,13 @@ def def_about() -> None:
     pAboutWindow.title("About") # Set the Window title name
     pAboutWindow.grab_set() # Makes the window modal (blocks interaction with the main window)
     pAboutWindow.resizable(False, False) # Disables window resizing 
-    pAboutWindow.geometry('%dx%d+%d+%d' % (700, 583, (700/1.2), (583/4))) # Set window size and location (consider margins and window manager decorations)
+    #pAboutWindow.geometry('%dx%d+%d+%d' % (700, 583, (700/1.2), (583/4))) # Set window size and location (consider margins and window manager decorations)
+    pAboutWindowWidth = 700 # width for the Tk root
+    pAboutWindowHeight = 583  # height for the Tk root
+    pAboutWindowX = (gWinfo_screenwidth - pAboutWindowWidth) // 2
+    pAboutWindowY = (gWinfo_screenheight - pAboutWindowHeight) // 6
+    pAboutWindow.geometry(f"{pAboutWindowWidth}x{pAboutWindowHeight}+{pAboutWindowX}+{pAboutWindowY}")
+
     #Labels
     pAppVersionLabel = create_Label(pAboutWindow, gLauncherName + " - " + gVersion, ("Orbitron", 14), TOP, "left","center") 
     pScriptVersionLabel = create_Label(pAboutWindow, "Supreme Commander Definitive Windowed Borderless Script - " + gScriptVersion + " AutoHotkeyU32 1.1.37.02", ("Orbitron", 14), TOP,"left","center") 
@@ -367,7 +376,6 @@ def def_about() -> None:
         Total Annihilation Zero \n\
         Zero-K(Steam)", ("Orbitron", 14), LEFT,"left","center")
 
-
 if getattr(sys, 'frozen', False):
     import pyi_splash
 
@@ -377,8 +385,8 @@ if getattr(sys, 'frozen', False):
 #global variables
 gLauncherName = "Definitive Supreme Commander Launcher" # App name
 gPythonVersion = "3.12.3" # Python version app is using
-gVersion = "1.0.5.0" # App version
-gGitVersionName ="version1.05" # Current app git version name
+gVersion = "1.0.6.0" # App version
+gGitVersionName ="version1.06" # Current app git version name
 gScriptVersion = "1.12" # Version of autohotkey script
 gConfigPath = Path("content/config/config.ini") # Relative path to INI file
 gIconPath = "content/icon/dscl_icon.ico" # Icon path
@@ -439,8 +447,8 @@ else: # Set the defaults of the INI file if the file does not exists and create 
     "lockCursorEnabled": "1",
     "autoSetMonitorEnabled": "1",
     "autoSetDualScreenEnabled": "0",
-    "updateLastCheck": "2024-03-27",
-    "updateLatestVersion": "version1.04",
+    "updateLastCheck": "2024-01-01",
+    "updateLatestVersion": gGitVersionName,
     "darkModeEnabled":"1",
     "minimizeallEnabled":"1",
     "dualScreenDefaultEnabled":"0",
@@ -455,14 +463,15 @@ theme_update() # Update the app theme
 gMainWindow = customtkinter.CTk() # Use customtkinter for the style of the main window
 gMainWindow.title(gLauncherName + " - " + gVersion) # Set the title of the Main window
 gMainWindow.iconbitmap(gIconPath) # Set the icon image for the window
+gMainWindow.resizable(0,0) #disable window maximize
+gWinfo_screenwidth = gMainWindow.winfo_screenwidth()
+gWinfo_screenheight = gMainWindow.winfo_screenheight()
 #set the size and position of the main window
 gMainWindowWidth = 1110 # width for the Tk root
-gMainWindowHeight = 768  # height for the Tk root
-gMainWindowX = (gMainWindowWidth/3) #Center the main window
-gMainWindowY = (gMainWindowHeight/6)
-gMainWindow.geometry('%dx%d+%d+%d' % (gMainWindowWidth, gMainWindowHeight, gMainWindowX, gMainWindowY)) #set window size and location
-gMainWindow.resizable(0,0) #disable window maximize
-
+gMainWindowHeight = 680  # height for the Tk root
+gMainWindowX = (gWinfo_screenwidth - gMainWindowWidth) // 2
+gMainWindowY = (gWinfo_screenheight - gMainWindowHeight) // 6
+gMainWindow.geometry(f"{gMainWindowWidth}x{gMainWindowHeight}+{gMainWindowX}+{gMainWindowY}")
 #Options menu
 optionmenu_var = customtkinter.StringVar(value="Menu")  # set the menu option for the file menu
 # Options menu settings
