@@ -197,7 +197,7 @@ def gCreateInterface() -> None:
             pGameExe = pGameLocation.split('\\')[-1] # Store just the exe name
             pGamePath = pGameLocation.replace(pGameExe, "", 1) # Change path for steam game
             pExeName = pGameExe # Change exe name to game exe for steam
-        
+    
         subCall.Popen([gAutoHotkeyLocation, 
         gAutoHotkeyScriptLocation,
         pGameName,
@@ -208,7 +208,9 @@ def gCreateInterface() -> None:
         pExeName, 
         gUserinfo["minimizeallEnabled"],
         gUserinfo["dualScreenDefaultEnabled"],
-        pGameType ])
+        pGameType,
+        gUserinfo["moveToFarLeftEnabled"]
+        ])
 
     # Function, Creates the game buttons for the interface
     def pInterfaceCreateGameButton(pImagePath:str, # Path to the button image
@@ -285,7 +287,7 @@ def gCreateInterface() -> None:
     pPositionFound = False # Position in the ini to start adding new data
     pCount=0 # loop count
     for key, value in gUserData.items('USERINFO'): # Loop through the values in USERINFO
-        if pPositionFound == False and key == "dualscreendefaultenabled": # check if the loop is upto dualscreendefaultenabled
+        if pPositionFound == False and key == "moveToFarLeftEnabled": # check if the loop is upto moveToFarLeftEnabled
             pPositionFound = True # Found the start position
             continue
         elif pPositionFound == False :
@@ -362,7 +364,7 @@ def gSettingsWindow() -> None:
         pIniData,
         pCheckboxText
     ) -> None:
-        def pCheckboxButtonClick(): # Check if the checkbox is enabled 
+        def pCheckboxButtonClick(): # Check if the checkbox is enabled
             if pCheckboxValue.get() == 1:
                 gUserinfo[pIniData] = "1" # Set ini data
             if pCheckboxValue.get() == 0:
@@ -420,6 +422,8 @@ def gSettingsWindow() -> None:
     pSettingsCheckBox("autoSetMonitorEnabled","Auto set game window size when in windowed mode (Supported Games: SC,FA,FAF,LOUD Default 1920x1080) ")
     pSettingsCheckBox("autoSetDualScreenEnabled","Enable auto dual screen switcher (Experimental, needs Common Mod Tools and ui-party enabled, only for FA,FAF,LOUD)")
     pSettingsCheckBox("dualScreenDefaultEnabled","Start supported games in dual screen by default")
+    pSettingsCheckBox("moveToFarLeftEnabled","Move game window to the far left (Disabled will use the main monitor position for game)")
+
     pHotkey1 = gCreateLabel(pSettingsScrollFrame, "Ctrl F12 (Switches to dual screen mode)", ("Orbitron", 14), TOP, "left","w") 
     pHotkey2 = gCreateLabel(pSettingsScrollFrame, "Ctrl F11 (Switches to single screen mode)", ("Orbitron", 14), TOP, "left","w") 
     pHotkey3 = gCreateLabel(pSettingsScrollFrame, "Ctrl F10 (End the ahk script)", ("Orbitron", 14), TOP, "left","w") 
@@ -868,10 +872,10 @@ if getattr(sys, 'frozen', False):
 
 #global variables
 gLauncherName = "Definitive Supreme Commander Launcher" # App name
-gLauncherVersion = "1.0.7.0" # App version
-gLauncherGitVersionName ="version1.07" # Current app git version name
+gLauncherVersion = "1.0.8.0" # App version
+gLauncherGitVersionName ="version1.08" # Current app git version name
 gPythonVersion = "3.12.4" # Python version app is using
-gAutoHotKeyScriptVersion = "1.13" # Version of autohotkey script
+gAutoHotKeyScriptVersion = "1.14" # Version of autohotkey script
 gAutoHotKeyVersion = "AutoHotkeyU32 1.1.37.02"
 gAutoHotkeyLocation = "content/scripts/AutoHotkeyU32.exe" # Path to AutoHotkeyU32 
 gAutoHotkeyScriptLocation = "content/scripts/main.ahk" # Path to AutoHotKey script
@@ -940,6 +944,7 @@ else: # Set the defaults of the INI file if the file does not exists and create 
     "darkModeEnabled":"1",
     "minimizeallEnabled":"1",
     "dualScreenDefaultEnabled":"0",
+    "moveToFarLeftEnabled":"0",
     }
     
     gReadWriteConfig("w") # Wright to the config

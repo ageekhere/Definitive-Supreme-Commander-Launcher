@@ -1,4 +1,5 @@
 ; Supreme Commander Definitive Windowed Borderless Script
+; version 1.14
 ; ageekhere, tatsu, IO_Nox other sources on the net
 ; Supports 
 ; dual Monitors of the same resolution
@@ -27,6 +28,7 @@ global gameExe:= A_Args[6]
 global minimizeOnGameStart:= A_Args[7]
 global gStartInDualScreenMode:= A_Args[8] ; Set the default Screen mode on startup, true is start in dual screen mode
 global gGameType:= A_Args[9]
+global gMoveGameToFarLeft:= A_Args[10]
 global gMoveX := 0 ; Sets the main screen x location, 0 being the "main display" X location
 global gMoveY := 0 ; Sets the main screen x location, 0 being the "main display" Y location
 global gResolutionWidth := 0 ; resolution width (do not change)
@@ -252,6 +254,32 @@ checkGameFile(exe,path)
 	}
 }
 
+movetofarleft(active_id)
+{
+	if (gMoveGameToFarLeft = 0)
+	{
+		return
+	}
+	; Get the dimensions of all monitors
+	SysGet, MonitorCount, MonitorCount
+	leftmost := 0
+
+	; Loop through all monitors to find the leftmost one
+	Loop, %MonitorCount%
+	{
+		SysGet, Monitor, MonitorWorkArea, %A_Index%
+		if (MonitorLeft < leftmost)
+		{
+			leftmost := MonitorLeft
+		}
+	}
+	; Move the active window to the far left of the leftmost monitor
+	WinGet, active_id, ID, A
+	WinMove, ahk_id %active_id%, , %leftmost%, , , 
+	WinGetPos, newX, newY, , , ahk_id %active_id%
+	gMoveX:= newX
+}
+
 Process, Wait, %gSelectedGameExe%, 120 ; Wait upto 120 seconds for the exe to start
 gProcPID := ErrorLevel ; set the error level
 
@@ -266,7 +294,7 @@ SetTimer, CheckGameStart, 1000 ; Call the CheckGameStart function
 
 if(gLockCursorArg == 1)
 { ; check for settings
-	SetTimer, clipTimer, 1000 ; Call the clipTimer function
+	SetTimer, clipTimer, 500 ; Call the clipTimer function
 } ; end if
 
 if(gEnableAutoDualScreen = true)
@@ -289,6 +317,7 @@ resize(x, y, gametype, active)
 			WinMinimize, % "ahk_exe " gametype
 			WinRestore, % "ahk_exe " gametype
 		} ; end if
+		movetofarleft(gSelectedGame)
 	} ; end if
 } ; end resize
 
@@ -338,6 +367,7 @@ CheckGameStart()
 		WinMove, % "ahk_exe " gSelectedGame , , gMoveX, gMoveY, windowWidth, gResolutionHeight
     	WinMaximize, % "ahk_exe " gSelectedGame
     	WinRestore, % "ahk_exe " gSelectedGame
+		movetofarleft(gSelectedGame)
 		
 		Process, Exist, %ProcessEXE%
 		gamePID := ErrorLevel
@@ -388,7 +418,8 @@ clipTimer()
 	setWidth := (gDualScreenActive ? gResolutionWidth * 2 : gResolutionWidth) ; set width of screen
 	if (Confine := True)
 	{ ; Clip cursor only if necessary
-		ClipCursor(true, 0, 0, setWidth, gResolutionHeight)
+		
+		ClipCursor(true, gMoveX, 0, setWidth + gMoveX, gResolutionHeight)
 	}  ; end if
 	else 
 	{ 
