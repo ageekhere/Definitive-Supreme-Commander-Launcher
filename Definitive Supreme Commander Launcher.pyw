@@ -287,7 +287,7 @@ def gCreateInterface() -> None:
     pPositionFound = False # Position in the ini to start adding new data
     pCount=0 # loop count
     for key, value in gUserData.items('USERINFO'): # Loop through the values in USERINFO
-        if pPositionFound == False and key == "moveToFarLeftEnabled": # check if the loop is upto moveToFarLeftEnabled
+        if pPositionFound == False and key == "movetofarleftenabled": # check if the loop is upto moveToFarLeftEnabled
             pPositionFound = True # Found the start position
             continue
         elif pPositionFound == False :
@@ -318,6 +318,7 @@ def gCreateInterface() -> None:
             if "steam://" in pCustomPathValue: # Check the the custom game is a steam game
                 pGameType = "steam" # Set the game type to steam
                 pExeName = pCutsomExeValue # Set the exe to steam type
+
             pInterfaceCreateGameButton(r"content\customGameData\\" + pCustomImageName, pLoadGame, pCustomTitleValue, pCustomEnabledKey, pCustomTitleValue, pCustomPathValue, pGameType, pExeName)
 
 # File settings window
@@ -536,7 +537,7 @@ def gGameUrlWindow() -> None:
         pCustomEnabledKey = None
         pPositionFound = False
         for key, value in gUserData.items('USERINFO'):
-            if pPositionFound == False and key == "dualscreendefaultenabled":
+            if pPositionFound == False and key == "movetofarleftenabled":
                 pPositionFound = True
                 continue
             elif pPositionFound == False :
@@ -872,8 +873,8 @@ if getattr(sys, 'frozen', False):
 
 #global variables
 gLauncherName = "Definitive Supreme Commander Launcher" # App name
-gLauncherVersion = "1.0.8.0" # App version
-gLauncherGitVersionName ="version1.08" # Current app git version name
+gLauncherVersion = "1.0.8.1" # App version
+gLauncherGitVersionName ="version1.081" # Current app git version name
 gPythonVersion = "3.12.4" # Python version app is using
 gAutoHotKeyScriptVersion = "1.14" # Version of autohotkey script
 gAutoHotKeyVersion = "AutoHotkeyU32 1.1.37.02"
