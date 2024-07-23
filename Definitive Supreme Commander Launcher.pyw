@@ -873,10 +873,10 @@ if getattr(sys, 'frozen', False):
 
 #global variables
 gLauncherName = "Definitive Supreme Commander Launcher" # App name
-gLauncherVersion = "1.0.8.1" # App version
-gLauncherGitVersionName ="version1.081" # Current app git version name
+gLauncherVersion = "1.0.8.2" # App version
+gLauncherGitVersionName ="version1.082" # Current app git version name
 gPythonVersion = "3.12.4" # Python version app is using
-gAutoHotKeyScriptVersion = "1.14" # Version of autohotkey script
+gAutoHotKeyScriptVersion = "1.15" # Version of autohotkey script
 gAutoHotKeyVersion = "AutoHotkeyU32 1.1.37.02"
 gAutoHotkeyLocation = "content/scripts/AutoHotkeyU32.exe" # Path to AutoHotkeyU32 
 gAutoHotkeyScriptLocation = "content/scripts/main.ahk" # Path to AutoHotKey script
