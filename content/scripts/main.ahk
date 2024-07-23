@@ -1,5 +1,5 @@
 ; Supreme Commander Definitive Windowed Borderless Script
-; version 1.14
+; version 1.15
 ; ageekhere, tatsu, IO_Nox other sources on the net
 ; Supports 
 ; dual Monitors of the same resolution
@@ -344,12 +344,13 @@ GetPriority(P:="current")
 
 CheckGameStart()
 { ; set game Priority, removes titlebar and borders and set window size and position
+	static procPriority := "null"
 	if (!ProcessExist(gSelectedGame)) 
 	{ ; wait for process to exist
-    	return
+    	procPriority := "null"
+		return
   	} ; end if
 	WinGet Style, Style, % "ahk_exe " gSelectedGame ; get the window style
-	static procPriority := "null"
 	if(procPriority = "null")
 	{ ; set process to high priority
 		procPriority := GetPriority(gSelectedGame) ; get process priority 
@@ -368,7 +369,7 @@ CheckGameStart()
     	WinMaximize, % "ahk_exe " gSelectedGame
     	WinRestore, % "ahk_exe " gSelectedGame
 		movetofarleft(gSelectedGame)
-		
+
 		Process, Exist, %ProcessEXE%
 		gamePID := ErrorLevel
     	ProcessHandle := DllCall("OpenProcess", "UInt", 0x1F0FFF, "Int", false, "UInt", gamePID) ; open
@@ -391,7 +392,6 @@ CheckGameStart()
 				WinMinimize, %title%
 			} ;end loop
 		} ; end if
-		SetTimer, CheckGameStart, OFF ; turn off CheckGameStart timer
 	} ; end if
 	return
 } ; end CheckGameStart
